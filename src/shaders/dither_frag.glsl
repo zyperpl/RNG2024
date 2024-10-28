@@ -5,6 +5,8 @@ layout(binding = 1) uniform sampler2D texture1; // normal
 layout(binding = 2) uniform sampler2D texture2; // palette
 
 layout(location = 0) in vec2 fragTexCoord;
+
+layout(location = 30) uniform vec2 cameraPos;
 layout(location = 31) uniform vec2 resolution;
 
 #define MAX_LIGHTS 16
@@ -27,8 +29,8 @@ float Bayer2(vec2 a)
 
 vec3 GetDitheredPalette(float x, float y, vec2 pixel)
 {
-  float ts = textureSize(texture2, 0).y;
-  float idx = clamp(y, 0.0, 1.0) * (ts - 1.0);
+  float ts   = textureSize(texture2, 0).y;
+  float idx  = clamp(y, 0.0, 1.0) * (ts - 1.0);
   float nidx = idx + 1.0;
 
   vec3 c1 = vec3(0);
@@ -54,13 +56,13 @@ void main()
     discard;
 
   vec4 n      = texture(texture1, uv);
-  vec3 normal   = normalize(n.xyz * 2.0 - 1.0);
+  vec3 normal = normalize(n.xyz * 2.0 - 1.0);
 
   float totalLight = 0.0;
 
   for (int i = 0; i < MAX_LIGHTS; i++)
   {
-    vec2 lp              = vec2(lightPos[i].x, resolution.y - lightPos[i].y);
+    vec2 lp              = vec2(lightPos[i].x - cameraPos.x, resolution.y - lightPos[i].y - cameraPos.y);
     vec2 lightDir        = normalize(lp - gl_FragCoord.xy);
     float lightDist      = length(lp - gl_FragCoord.xy) / 40.0;
     float lightIntensity = pow(lightDist, -2.0) * lightStrength[i];
@@ -70,7 +72,7 @@ void main()
     totalLight += diffuse * lightIntensity;
   }
 
-  vec3 color = GetDitheredPalette(t.b * 255.0 / 30.0, pow(t.r, 3.0) * totalLight, gl_FragCoord.xy);
+  vec3 color = GetDitheredPalette(t.b * 255.0 / 30.0, pow(t.r, 3.0) * totalLight, gl_FragCoord.xy + cameraPos);
 
   fragColor = vec4(color, 1.0);
 

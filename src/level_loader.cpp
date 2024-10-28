@@ -198,11 +198,11 @@ void LevelLoader::unload_project()
 
 [[nodiscard]] static inline int get_layer_depth(const ldtk::LayerInstance &layer)
 {
-  if (layer.identifier == "Front")
+  if (layer.identifier.starts_with("Front"))
     return -10;
   if (layer.identifier == "Default")
     return 0;
-  else if (layer.identifier == "Back")
+  else if (layer.identifier.starts_with("Back"))
     return 10;
 
   ASSERT_RET_VAL(false, "Invalid layer depth", 0);

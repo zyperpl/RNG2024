@@ -257,12 +257,12 @@ void Sprite::set_centered()
 
 Rectangle Sprite::get_source_rect() const
 {
-  const float sprite_w{ static_cast<float>(get_width()) };
-  const float sprite_h{ static_cast<float>(get_height()) };
+  const float w{ static_cast<float>(get_width()) };
+  const float h{ static_cast<float>(get_height()) };
   const float h_flip{ scale.x > 0.0f ? 1.0f : -1.0f };
   const float v_flip{ scale.y > 0.0f ? 1.0f : -1.0f };
 
-  return Rectangle{ static_cast<float>(frame_index) * sprite_w, 0.0f, h_flip * sprite_w, v_flip * sprite_h };
+  return Rectangle{ source_offset.x + static_cast<float>(frame_index) * w, source_offset.y, h_flip * w, v_flip * h };
 }
 
 Rectangle Sprite::get_destination_rect() const
@@ -349,7 +349,8 @@ bool Sprite::should_advance_frame()
     frame_index = 0;
     return false;
   }
-  const auto frame_duration = frame_durations[frame_array_index];
+  const auto frame_duration =
+    static_cast<size_t>(frame_array_index) < frame_durations.size() ? frame_durations[frame_array_index] : 100;
   frame_timer += time_difference_ms;
 
   if (frame_timer >= frame_duration)

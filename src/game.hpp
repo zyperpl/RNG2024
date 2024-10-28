@@ -67,6 +67,7 @@ private:
   size_t ticks{ 0 };
   size_t frames{ 0 };
 
+  Camera2D camera;
   NRL::RenderTexture render_texture{ 8, 8 };
   NRL::ScreenEffect dither_fx{ "assets/shaders/dither_frag.glsl" };
   Level::Level level;

@@ -578,6 +578,9 @@ private:
   friend ComponentsSpan<C> get_components();
 
   template<typename C>
+  friend std::set<C *> get_components(Entity);
+
+  template<typename C>
   friend ComponentReference<C> get_component(Entity);
 
   friend Entity create_entity();
@@ -615,6 +618,12 @@ template<typename C>
 [[nodiscard]] inline ComponentsSpan<C> get_components()
 {
   return Manager::get().get_components<C>();
+}
+
+template<typename C>
+[[nodiscard]] inline std::set<C *> get_components(Entity entity)
+{
+  return Manager::get().get_components<C>(entity);
 }
 
 template<typename C>

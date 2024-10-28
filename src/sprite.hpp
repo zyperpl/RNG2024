@@ -33,7 +33,6 @@ public:
   void draw() const noexcept;
 
   [[nodiscard]] const Texture2D &get_texture() const;
-
   [[nodiscard]] size_t get_width() const;
   [[nodiscard]] size_t get_height() const;
 
@@ -71,6 +70,7 @@ public:
   Vector2 position{ 0.0f, 0.0f };
   Vector2 origin{ 0.0f, 0.0f };
   Vector2 offset{ 0.0f, 0.0f };
+  Vector2 source_offset{ 0.0f, 0.0f };
   Vector2 scale{ 1.0f, 1.0f };
 
   Color tint{ WHITE };
@@ -79,6 +79,29 @@ public:
   inline bool has_tag(const std::string &tag_name) const
   {
     return tags.find(tag_name) != tags.end();
+  }
+
+  inline void set_frame_width(int16_t width)
+  {
+    frame_width = width;
+  }
+
+  inline void set_frame_height(int16_t height)
+  {
+    frame_height = height;
+  }
+
+  inline void set_frame_durations(const std::vector<int32_t> &durations)
+  {
+    frame_durations = durations;
+  }
+
+  inline void set_frame_count(int8_t count)
+  {
+    frame_count = count;
+    default_tag.start_frame = 0;
+    default_tag.end_frame   = count - 1;
+    tag = default_tag;
   }
 
 protected:

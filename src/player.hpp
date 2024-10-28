@@ -4,6 +4,7 @@
 
 #include "particles.hpp"
 #include "physics.hpp"
+#include "renderers.hpp"
 #include "utils.hpp"
 
 struct Player
@@ -14,9 +15,14 @@ struct Player
   void preupdate();
   void update();
   void postupdate();
-  void render();
 
 private:
+  int dir_x{ 1 };
+  int dir_y{ 0 };
+
+  ComponentReference<SpriteRenderer> body;
+  ComponentReference<SpriteRenderer> wheel1;
+  ComponentReference<SpriteRenderer> wheel2;
 };
 
 EXTERN_COMPONENT_TEMPLATE(Player);

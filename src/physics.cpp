@@ -114,7 +114,6 @@ void Physics::check_collisions()
 void Physics::update_physics()
 {
   v.y += gravity;
-
   v.y = std::clamp(v.y, -32.0f, 32.0f);
 }
 

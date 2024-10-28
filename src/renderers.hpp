@@ -16,7 +16,8 @@ struct SpriteInterpolated
 
   inline void update()
   {
-    sprite.animate();
+    if (animation_speed != 0)
+      sprite.animate(animation_speed);
   }
 
   inline void render();
@@ -27,6 +28,7 @@ struct SpriteInterpolated
   float previous_y{ std::numeric_limits<float>::quiet_NaN() };
   Sprite sprite;
   bool visible{ true };
+  int animation_speed{ 1 };
 };
 
 struct SpriteRenderer final

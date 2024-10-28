@@ -9,6 +9,7 @@
 #include "component.hpp"
 #include "input.hpp"
 #include "level.hpp"
+#include "light.hpp"
 #include "manager.hpp"
 #include "player.hpp"
 #include "renderers.hpp"
@@ -100,12 +101,15 @@ extern "C"
       }
     }
 
-    light_pos[0].x = Input::get().game_mouse().x;
-    light_pos[0].y = Input::get().game_mouse().y;
+    auto &camera = game.camera;
+    light_pos[0].x = Input::get().game_mouse().x - camera.offset.x + camera.target.x;
+    light_pos[0].y = Input::get().game_mouse().y - camera.offset.y + camera.target.y;
     if (Input::get().mouse_wheel_down)
       light_strength[0] -= 0.2f;
     if (Input::get().mouse_wheel_up)
       light_strength[0] += 0.2f;
+    if (light_strength[0] < 0.0f)
+      light_strength[0] = 0.0f;
 
     if (!get_components<Player>().empty())
     {
@@ -114,7 +118,22 @@ extern "C"
 
       light_pos[1].x    = player_physics.x;
       light_pos[1].y    = player_physics.y;
-      light_strength[1] = 0.5f;
+      light_strength[1] = 0.1f;
+    }
+
+    size_t light_idx = 2;
+    for (const auto &light : get_components<Light>())
+    {
+      light_pos[light_idx].x    = light.start_x;
+      light_pos[light_idx].y    = light.start_y;
+      light_strength[light_idx] = light.strength;
+
+      light_idx += 1;
+      if (light_idx >= MAX_LIGHTS)
+      {
+        printf("Reached maximum number of lights (%zu)\n", MAX_LIGHTS);
+        break;
+      }
     }
 
     game.frames += 1;
@@ -129,29 +148,73 @@ extern "C"
       game.generate_palette_texture();
     }
 
+    auto players = get_components<Player>();
+    bool move_camera = true;
+#if defined(DEBUG)
+    if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
+      move_camera = false;
+#endif
+    if (!players.empty() && move_camera)
+    {
+      const auto &player   = players.front();
+      auto &player_physics = get_component<Physics>(player.entity).get();
+      auto &player_x       = player_physics.x;
+      auto &player_y       = player_physics.y;
+      camera.offset        = { game.render_texture.value.texture.width / 2.0f,
+                               game.render_texture.value.texture.height / 2.0f };
+      camera.target.x      = player_x;
+      camera.target.y      = player_y - player_physics.mask.height / 2;
+      camera.target.x      = roundf(camera.target.x);
+      camera.target.y      = roundf(camera.target.y);
+
+      if (camera.target.x < camera.offset.x)
+        camera.target.x = camera.offset.x;
+      if (camera.target.y < camera.offset.y)
+        camera.target.y = camera.offset.y;
+      if (camera.target.x > game.level.get_width() - camera.offset.x)
+        camera.target.x = game.level.get_width() - camera.offset.x;
+      if (camera.target.y > game.level.get_height() - camera.offset.y)
+        camera.target.y = game.level.get_height() - camera.offset.y;
+
+      camera.zoom     = 1.0f;
+      camera.rotation = 0.0f;
+    }
+
     static auto tileset        = LoadTexture("assets/tileset.png");
     static auto tileset_normal = LoadTexture("assets/tileset_normal.png");
 
     // draw
     if (game.dither_fx.enable())
     {
-      auto &shader        = game.dither_fx.shader.shader;
-      const auto res_vec2 = Vector2{ static_cast<float>(game_render_texture.texture.width),
-                                     static_cast<float>(game_render_texture.texture.height) };
-      SetShaderValue(shader, GetShaderLocation(shader, "resolution"), &res_vec2, SHADER_UNIFORM_VEC2);
+      BeginMode2D(camera);
+      {
+        auto &shader        = game.dither_fx.shader.shader;
+        const auto res_vec2 = Vector2{ static_cast<float>(game_render_texture.texture.width),
+                                       static_cast<float>(game_render_texture.texture.height) };
+        SetShaderValue(shader, GetShaderLocation(shader, "resolution"), &res_vec2, SHADER_UNIFORM_VEC2);
 
-      const auto lightPos_loc = GetShaderLocation(shader, "lightPos");
-      SetShaderValueV(shader, lightPos_loc, &light_pos, SHADER_UNIFORM_VEC2, MAX_LIGHTS);
+        const auto lightPos_loc = GetShaderLocation(shader, "lightPos");
+        assert(lightPos_loc != -1);
+        SetShaderValueV(shader, lightPos_loc, &light_pos, SHADER_UNIFORM_VEC2, MAX_LIGHTS);
 
-      const auto lightStrength_loc = GetShaderLocation(shader, "lightStrength");
-      SetShaderValueV(shader, lightStrength_loc, &light_strength, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
+        const auto cameraPos_loc = GetShaderLocation(shader, "cameraPos");
+        assert(cameraPos_loc != -1);
+        Vector2 camera_pos = { camera.target.x - camera.offset.x, camera.target.y - camera.offset.y };
+        SetShaderValue(shader, cameraPos_loc, &camera_pos, SHADER_UNIFORM_VEC2);
 
-      SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), tileset);
-      SetShaderValueTexture(shader, GetShaderLocation(shader, "texture1"), tileset_normal);
-      SetShaderValueTexture(shader, GetShaderLocation(shader, "texture2"), game.palette_texture);
-      ClearBackground(Color{ 220, 245, 255, 255 });
+        const auto lightStrength_loc = GetShaderLocation(shader, "lightStrength");
+        assert(lightStrength_loc != -1);
+        SetShaderValueV(shader, lightStrength_loc, &light_strength, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
 
-      manager.call_render();
+        SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), tileset);
+        SetShaderValueTexture(shader, GetShaderLocation(shader, "texture1"), tileset_normal);
+        SetShaderValueTexture(shader, GetShaderLocation(shader, "texture2"), game.palette_texture);
+        ClearBackground(PALETTE_WHITE);
+
+        manager.call_render(0);
+        manager.call_render(NEG_INF_DEPTH);
+      }
+      EndMode2D();
 
       game.dither_fx.disable();
     }
@@ -171,7 +234,7 @@ extern "C"
     BeginTextureMode(interface_render_texture);
     {
       ClearBackground(BLANK);
-      const Color cursor_color = RAYWHITE;
+      const Color cursor_color = PALETTE_BLUE;
       INPUT.hide_cursor();
 
       [[maybe_unused]] auto mouse_position = round(INPUT.interface_mouse());
@@ -259,8 +322,8 @@ extern "C"
       auto mouse_position = INPUT.game_mouse();
       if (INPUT.mouse_right)
       {
-        player_x = mouse_position.x;
-        player_y = mouse_position.y;
+        player_x = mouse_position.x - game->camera.offset.x + game->camera.target.x;
+        player_y = mouse_position.y - game->camera.offset.y + game->camera.target.y;
       }
 
       if (IsKeyDown(KEY_LEFT_ALT))
@@ -413,8 +476,8 @@ void Game::generate_palette_texture()
 
   // green
   {
-    Color colors[8]{ PALETTE_BLACK, PALETTE_PURPLE, PALETTE_GRAY,  PALETTE_BLUE,
-                     PALETTE_GREEN, PALETTE_BLUE,   PALETTE_GREEN, PALETTE_WHITE };
+    Color colors[8]{ PALETTE_BLACK, PALETTE_PURPLE, PALETTE_GRAY,  PALETTE_GREEN,
+                     PALETTE_GREEN, PALETTE_GREEN,   PALETTE_GREEN, PALETTE_WHITE };
     for (size_t i = 0; i < 8; i++)
       ImageDrawPixel(&palette_image, 4, i, colors[i]);
   }
@@ -422,7 +485,7 @@ void Game::generate_palette_texture()
   // red
   {
     Color colors[8]{ PALETTE_BLACK, PALETTE_PURPLE, PALETTE_GRAY,   PALETTE_BLUE,
-                     PALETTE_RED,   PALETTE_RED,    PALETTE_YELLOW, PALETTE_WHITE };
+                     PALETTE_RED,   PALETTE_YELLOW,    PALETTE_RED, PALETTE_WHITE };
     for (size_t i = 0; i < 8; i++)
       ImageDrawPixel(&palette_image, 5, i, colors[i]);
   }

@@ -10,6 +10,14 @@ struct Block
 {
   COMPONENT(Block);
 
+  Block(const Level::Entity &entity)
+    : x{ entity.position.x }
+    , y{ entity.position.y }
+    , w{ entity.size.w }
+    , h{ entity.size.h }
+  {
+  }
+
   Block(const Level::Tile &tile)
     : x{ tile.position.x }
     , y{ tile.position.y }

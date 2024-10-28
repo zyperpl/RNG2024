@@ -65,7 +65,7 @@ void TileRenderer::render()
 
 inline void TileRenderer::render(Sprite &sprite, Rectangle source, Vector2 position)
 {
-  static const auto &texture = sprite.get_texture();
+  const auto &texture = sprite.get_texture();
   DrawTexturePro(texture,
                  source,
                  { position.x, position.y, source.width, source.height },
