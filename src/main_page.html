@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="zyperpl">
+  <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAAAAADFp7CUAAAAAXNSR0IArs4c6QAAACNJREFUCB1j8PLy+v3biwFI7moCUk2zkSmd2U0KIDljYy8vAGzvD5koxwj6AAAAAElFTkSuQmCC" type="image/png">
+  <title> Game </title>
+  <style>
+    html, head, body, div
+    {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      color: #fffafb;
+      background-color: black;
+    }
+
+    #message
+    {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 24px;
+      font-family: monospace;
+      text-align: center;
+      padding: 10px;
+      margin: 10px;
+      border-radius: 2px;
+    }
+
+    #loader 
+    {
+      border: 5px solid #404973;
+      border-top: 5px solid #ff8933;
+      border-radius: 25%;
+      width: 16px;
+      height: 16px;
+      animation: spin 0.4s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .msg-hide
+    {
+      display: none;
+    }
+
+    .msg-error
+    {
+      color: #ff3546;
+      border: 2px solid #ff4973;
+      background-color: #191011;
+    }
+
+    .msg-error-button
+    {
+      color: #ff4973;
+      background-color: #191011;
+      font-size: 16px;
+      font-family: monospace;
+    }
+
+    .msg-error-button:hover
+    {
+      background-color: #af3546;
+      color: #ffaabb;
+      cursor: pointer;
+    }
+
+    .msg-error-button:disabled
+    {
+      color: #999999;
+      background-color: #191011;
+      cursor: default;
+    }
+
+    @keyframes spin 
+    {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    #canvas
+    {
+      image-rendering: pixelated;
+      overflow: hidden;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="message">The game is loading &nbsp;<span id="loader"></span></div>
+
+  <canvas id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+
+  <script> 
+    var Module = {
+      canvas: (function(){ return document.getElementById('canvas'); })(),
+      onRuntimeInitialized: () => {
+        document.getElementById('message').classList.add('msg-hide')
+      },
+      onAbort: (what) => {
+        console.log("Emscripten aborted: " + what)
+        const messageElement = document.getElementById('message')
+        messageElement.innerHTML = "Loading error: " + what + "<br><br>"
+          + "<br>You can try to refresh the page"
+          + "<br>or try another browser"
+          + "<br><br>Sorry for the inconvenience"
+          + "<br>Press F12 to open the console"
+          + "<br>and send me the error message"
+          + "<br><button class=msg-error-button>Close the message</button>"
+
+        messageElement.classList.remove('msg-hide')
+        messageElement.classList.add('msg-error')
+
+        const buttonElement = document.querySelector('.msg-error-button')
+        buttonElement.addEventListener('click', close_message)
+        buttonElement.disabled = true
+        buttonElement.active = false
+        setTimeout(() => { 
+          buttonElement.disabled = false
+          buttonElement.active = true
+        }, 1600)
+      },
+      printErr: (what) => {
+        console.log("Emscripten error: " + what)
+        Module.onAbort(what)
+      },
+    };
+
+    function check_canvas_size(event)
+    {
+      const window_w = 256*4
+      const window_h = 144*4
+      const window_scale = Math.min(window.innerWidth / window_w, window.innerHeight / window_h)
+
+      Module.setCanvasSize(window_w * window_scale, window_h * window_scale)
+    }
+
+    function window_load()
+    {
+      window.addEventListener("resize", check_canvas_size)
+
+      document.addEventListener("keydown", function(e) {
+        const key_names = [" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]
+          if (key_names.includes(e.key))
+            e.preventDefault()
+      })
+    }
+
+    function close_message()
+    {
+      document.getElementById('message').style.display = 'none'
+    }
+
+    window.addEventListener("load", window_load)
+  </script>
+    
+  <script src="engine.js" onload=check_canvas_size></script>
+</body>
+</html>
