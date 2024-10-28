@@ -32,6 +32,9 @@ void generate_entity(const std::string &component_name,
     if (params.has_sounds)
       file << "#include \"sound.hpp\"\n";
 
+    if (params.is_level_entity)
+      file << "#include \"level.hpp\"\n";
+
     file << "\n";
 
     file << "struct " << component_name << "\n";
@@ -104,8 +107,8 @@ void generate_entity(const std::string &component_name,
     {
       file << component_name << "::" << component_name << "(const Level::Entity &entity)\n";
       file << "{\n";
-      file << "  start_x = entity.position.x;\n";
-      file << "  start_y = entity.position.y;\n";
+      file << "  start_x = entity.position.x + entity.size.w / 2;\n";
+      file << "  start_y = entity.position.y + entity.size.h / 2;\n";
       file << "\n";
       file << "}\n";
       file << "\n";
@@ -188,51 +191,86 @@ void generate_entity(const std::string &component_name,
 
   if (std::filesystem::exists(src_path + "CMakeLists.txt"))
   {
-    // find 'set(GAME_SOURCES', add new file after last .cpp file, before ')'
-    
-    std::ifstream file(src_path + "CMakeLists.txt");
-    std::string line;
-    std::string last_line;
-    std::string last_cpp_file;
-    bool found = false;
-
-    while (std::getline(file, line))
+    auto get_last_line = [&](const std::string &match) -> std::string
     {
-      if (line.find("set(GAME_SOURCES") != std::string::npos)
+      std::ifstream file(src_path + "CMakeLists.txt");
+      bool found = false;
+      std::string line;
+      std::string last_line;
+      while (std::getline(file, line))
       {
-        found = true;
-        continue;
-      }
+        if (line.find(match) != std::string::npos)
+        {
+          found = true;
+          continue;
+        }
 
-      if (found)
+        if (found)
+        {
+          if (line.find(".cpp") != std::string::npos)
+            last_line = line;
+          else if (line.find(".hpp") != std::string::npos)
+            last_line = line;
+          else if (line.find(".h") != std::string::npos)
+            last_line = line;
+          else if (line.find(")") != std::string::npos)
+            break;
+        }
+      }
+      return last_line;
+    };
+
+    // cpp
+    {
+      const auto last_line = get_last_line("set(GAME_SOURCES");
+      assert(!last_line.empty() && "Could not find GAME_SOURCES");
+      if (!last_line.empty() && !last_line.starts_with("  " + file_name + ".cpp"))
       {
-        if (line.find(".cpp") != std::string::npos)
+        printf("Found last line: \"%s\"\n", last_line.c_str());
+        std::string new_line      = "  " + file_name + ".cpp";
+        std::string new_last_line = last_line + "\n" + new_line;
+        printf("New last line: \"%s\"\n", new_last_line.c_str());
+
+        std::string content;
         {
-          last_line = line;
-          last_cpp_file = line.substr(line.find_last_of("/") + 1);
+          std::ifstream file(src_path + "CMakeLists.txt");
+          std::string line;
+          while (std::getline(file, line))
+            content += line + "\n";
+
+          size_t pos = content.find(last_line);
+          content.replace(pos, last_line.size(), new_last_line);
         }
-        else if (line.find(")") != std::string::npos)
-        {
-          break;
-        }
+
+        std::ofstream new_file(src_path + "CMakeLists.txt");
+        new_file << content;
       }
     }
 
-    if (!last_cpp_file.empty())
+    // hpp
     {
-      std::string new_line = "  " + file_name + ".cpp";
-      std::string new_last_line = last_line + "\n" + new_line;
+      const auto last_line = get_last_line("set(GAME_HEADERS");
+      assert(!last_line.empty() && "Could not find GAME_HEADERS");
+      if (!last_line.empty() && !last_line.starts_with("  " + file_name + ".hpp"))
+      {
+        printf("Found last line: \"%s\"\n", last_line.c_str());
+        std::string new_line      = "  " + file_name + ".hpp";
+        std::string new_last_line = last_line + "\n" + new_line;
+        printf("New last line: \"%s\"\n", new_last_line.c_str());
 
-      std::string content;
-      file.seekg(0);
-      while (std::getline(file, line))
-        content += line + "\n";
+        std::string content;
+        {
+          std::ifstream file(src_path + "CMakeLists.txt");
+          std::string line;
+          while (std::getline(file, line))
+            content += line + "\n";
 
-      size_t pos = content.find(last_line);
-      content.replace(pos, last_line.size(), new_last_line);
-
-      std::ofstream new_file(src_path + "CMakeLists.txt");
-      new_file << content;
+          size_t pos = content.find(last_line);
+          content.replace(pos, last_line.size(), new_last_line);
+        }
+        std::ofstream new_file(src_path + "CMakeLists.txt");
+        new_file << content;
+      }
     }
   }
 }

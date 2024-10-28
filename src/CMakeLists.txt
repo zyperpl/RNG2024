@@ -60,6 +60,7 @@ set(GAME_SOURCES
   physics.cpp
   player.cpp
   renderers.cpp
+  light.cpp
 )
 
 set(GAME_HEADERS
@@ -75,6 +76,7 @@ set(GAME_HEADERS
   player.hpp
   renderers.hpp
   utils.hpp
+  light.hpp
 )
 
 if (EMSCRIPTEN)

@@ -22,7 +22,8 @@ const int GAME_WIDTH{ 320 };
 const int GAME_HEIGHT{ 180 };
 const char *const GAME_TITLE{ "Game" };
 const double INTERNAL_FPS{ 60.0 };
-const Color BACKGROUND_COLOR{ 16, 15, 14, 255 };
+const Color BACKGROUND_COLOR{ 85, 65, 95, 255 };
+const Color PALETTE_WHITE{ 220, 245, 255, 255 };
 
 void *manager_memory{ nullptr };
 void *allocate_manager(size_t alignment, size_t size)
@@ -177,18 +178,18 @@ auto update_draw_frame()
         fflush(stdout);
         exit(0);
       }
-      DrawText(TextFormat("FPS: %3.2f", engine->fps), 0, text_y, font_size, WHITE);
+      DrawText(TextFormat("FPS: %3.2f", engine->fps), 0, text_y, font_size, PALETTE_WHITE);
 #endif
 
       if (IsKeyDown(DEBUG_KEY) || reload_recently)
       {
-        DrawText(TextFormat("FPS: %3.2f", engine->fps), 0, text_y, font_size, WHITE);
+        DrawText(TextFormat("FPS: %3.2f", engine->fps), 0, text_y, font_size, PALETTE_WHITE);
         text_y += font_size;
         DrawText(TextFormat("Reloads: %8lu (%3.1fs ago)", engine->library_reloads, reload_seconds_ago),
                  0,
                  text_y,
                  font_size,
-                 reload_recently ? RED : WHITE);
+                 reload_recently ? RED : PALETTE_WHITE);
         text_y += font_size;
       }
     }
@@ -202,7 +203,7 @@ auto update_draw_frame()
     BeginDrawing();
     {
       ClearBackground(BACKGROUND_COLOR);
-      DrawText("Game library is not loaded", 0, 0, 10, WHITE);
+      DrawText("Game library is not loaded", 0, 0, 10, PALETTE_WHITE);
     }
     EndDrawing();
   }
@@ -231,7 +232,7 @@ auto update_draw_frame()
 auto main() -> int
 {
 #if defined(DEBUG)
-  // generate_entity("Light", "light", { .is_level_entity = true });
+  //generate_entity("Light", "light", { .is_level_entity = true });
 #endif
 
   InitWindow(GAME_WIDTH * 4, GAME_HEIGHT * 4, GAME_TITLE);
