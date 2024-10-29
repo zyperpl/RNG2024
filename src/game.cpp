@@ -92,43 +92,47 @@ extern "C"
     const size_t MAX_LIGHTS = 16;
     static Vector2 light_pos[MAX_LIGHTS];
     static float light_strength[MAX_LIGHTS];
-    if (light_strength[0] == 0.0f)
+    for (size_t i = 0; i < MAX_LIGHTS; i++)
     {
-      for (size_t i = 0; i < MAX_LIGHTS; i++)
-      {
-        light_pos[i]      = Vector2{ -990.0f, -990.0f };
-        light_strength[i] = 0.0f;
-      }
+      light_pos[i]      = Vector2{ -990.0f, -990.0f };
+      light_strength[i] = 0.0f;
     }
 
-    auto &camera = game.camera;
-    light_pos[0].x = Input::get().game_mouse().x - camera.offset.x + camera.target.x;
-    light_pos[0].y = Input::get().game_mouse().y - camera.offset.y + camera.target.y;
+    size_t light_idx = 0;
+    auto &camera   = game.camera;
+    light_pos[light_idx].x = Input::get().game_mouse().x - camera.offset.x + camera.target.x;
+    light_pos[light_idx].y = Input::get().game_mouse().y - camera.offset.y + camera.target.y;
+    static float mouse_light_strength = 0.0f;
     if (Input::get().mouse_wheel_down)
-      light_strength[0] -= 0.2f;
+      mouse_light_strength -= 0.2f;
     if (Input::get().mouse_wheel_up)
-      light_strength[0] += 0.2f;
-    if (light_strength[0] < 0.0f)
-      light_strength[0] = 0.0f;
+      mouse_light_strength += 0.2f;
+    if (mouse_light_strength < 0.0f)
+      mouse_light_strength = 0.0f;
+    light_strength[light_idx] = mouse_light_strength;
+    light_idx += 1;
 
     if (!get_components<Player>().empty())
     {
       auto &player         = get_components<Player>().front();
       auto &player_physics = get_component<Physics>(player.entity).get();
 
-      light_pos[1].x    = player_physics.x;
-      light_pos[1].y    = player_physics.y;
-      light_strength[1] = 0.1f;
+      light_pos[light_idx].x    = player_physics.x;
+      light_pos[light_idx].y    = player_physics.y;
+      light_strength[light_idx] = 0.1f;
+      light_idx += 1;
     }
 
-    size_t light_idx = 2;
     for (const auto &light : get_components<Light>())
     {
-      light_pos[light_idx].x    = light.start_x;
-      light_pos[light_idx].y    = light.start_y;
-      light_strength[light_idx] = light.strength;
+      if (light.x + light.strength * 96.0f < camera.target.x - camera.offset.x)
+        continue;
 
+      light_pos[light_idx].x    = light.x;
+      light_pos[light_idx].y    = light.y;
+      light_strength[light_idx] = light.strength;
       light_idx += 1;
+
       if (light_idx >= MAX_LIGHTS)
       {
         printf("Reached maximum number of lights (%zu)\n", MAX_LIGHTS);
@@ -148,7 +152,7 @@ extern "C"
       game.generate_palette_texture();
     }
 
-    auto players = get_components<Player>();
+    auto players     = get_components<Player>();
     bool move_camera = true;
 #if defined(DEBUG)
     if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON))
@@ -222,7 +226,13 @@ extern "C"
     BeginTextureMode(game_render_texture);
     {
       game.dither_fx.draw_texture(target_source(game_render_texture));
-      DrawTexture(game.palette_texture, 10, 10, WHITE);
+
+#if defined(DEBUG)
+      DrawTexture(game.palette_texture, 2, 2, WHITE);
+      DrawText(TextFormat("Lights: %zu", light_idx), 2, 12 + 1, 10, PALETTE_BLACK);
+      DrawText(TextFormat("Lights: %zu", light_idx), 2 + 1, 12, 10, PALETTE_GRAY);
+      DrawText(TextFormat("Lights: %zu", light_idx), 2, 12, 10, PALETTE_YELLOW);
+#endif
     }
     EndTextureMode();
 
@@ -234,6 +244,7 @@ extern "C"
     BeginTextureMode(interface_render_texture);
     {
       ClearBackground(BLANK);
+#if defined(DEBUG)
       const Color cursor_color = PALETTE_BLUE;
       INPUT.hide_cursor();
 
@@ -263,6 +274,7 @@ extern "C"
       }
 
       previous_mouse_position = mouse_position;
+#endif      
     }
     EndTextureMode();
   }
@@ -477,15 +489,15 @@ void Game::generate_palette_texture()
   // green
   {
     Color colors[8]{ PALETTE_BLACK, PALETTE_PURPLE, PALETTE_GRAY,  PALETTE_GREEN,
-                     PALETTE_GREEN, PALETTE_GREEN,   PALETTE_GREEN, PALETTE_WHITE };
+                     PALETTE_GREEN, PALETTE_GREEN,  PALETTE_GREEN, PALETTE_WHITE };
     for (size_t i = 0; i < 8; i++)
       ImageDrawPixel(&palette_image, 4, i, colors[i]);
   }
 
   // red
   {
-    Color colors[8]{ PALETTE_BLACK, PALETTE_PURPLE, PALETTE_GRAY,   PALETTE_BLUE,
-                     PALETTE_RED,   PALETTE_YELLOW,    PALETTE_RED, PALETTE_WHITE };
+    Color colors[8]{ PALETTE_BLACK, PALETTE_PURPLE, PALETTE_GRAY, PALETTE_BLUE,
+                     PALETTE_RED,   PALETTE_YELLOW, PALETTE_RED,  PALETTE_WHITE };
     for (size_t i = 0; i < 8; i++)
       ImageDrawPixel(&palette_image, 5, i, colors[i]);
   }

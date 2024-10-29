@@ -23,6 +23,7 @@ private:
   ComponentReference<SpriteRenderer> body;
   ComponentReference<SpriteRenderer> wheel1;
   ComponentReference<SpriteRenderer> wheel2;
+  ComponentReference<SpriteRenderer> barrel;
 };
 
 EXTERN_COMPONENT_TEMPLATE(Player);

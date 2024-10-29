@@ -56,7 +56,21 @@ void Player::init()
     spr.set_frame_width(8);
     spr.set_frame_height(8);
     spr.set_frame_count(4);
+    spr.set_frame(2);
     spr.set_centered();
+  }
+
+  {
+    barrel              = add_component(entity, SpriteRenderer("assets/tileset.png"));
+    auto &renderer      = barrel.get();
+    auto &spr           = renderer.sprite_interpolated.sprite;
+    spr.source_offset.x = 0;
+    spr.source_offset.y = 232 - 8;
+    spr.set_frame_width(8);
+    spr.set_frame_height(8);
+    spr.set_frame_count(1);
+    spr.set_centered();
+    spr.origin.x -= 8;
   }
 }
 
@@ -86,42 +100,78 @@ void Player::update()
 
   if (input.up)
   {
-    if (physics.is_standing())
-    {
-      physics.v.y = -jump;
-    }
     dir_y = -1;
-  }
-  else if (input.down)
-  {
-    dir_y = 1;
   }
   else
   {
     dir_y = 0;
   }
+
+  if (input.jump)
+  {
+    if (physics.is_standing())
+    {
+      physics.v.y = -jump;
+    }
+  }
 }
 
 void Player::postupdate()
 {
-  auto &physics  = get_component<Physics>(entity).get();
+  auto &physics = get_component<Physics>(entity).get();
+
   const int y_bump_offset = physics.x / 12 % 2 == 0;
-  body.get().set_position(physics.x, physics.y - y_bump_offset);
-  if (dir_x != 0)
-    body.get().sprite_interpolated.sprite.scale.x = dir_x;
-
-  const float y_suspension_offset = std::max(std::min(3.0f, -physics.v.y * 1.2f), -3.0f);
-  wheel1.get().set_position(physics.x - 8.0f, physics.y + 5.0f + y_suspension_offset);
-  wheel2.get().set_position(physics.x + 8.0f, physics.y + 5.0f + y_suspension_offset);
-
-  if (fabs(physics.v.x) > 0.5f)
+  if (body)
   {
-    wheel1.get().sprite_interpolated.animation_speed = dir_x;
-    wheel2.get().sprite_interpolated.animation_speed = dir_x;
-  } 
-  else
+    body.get().set_position(physics.x, physics.y - y_bump_offset);
+    if (dir_x != 0)
+      body.get().sprite_interpolated.sprite.scale.x = dir_x;
+  }
+
+  if (wheel1 && wheel2)
   {
-    wheel1.get().sprite_interpolated.animation_speed = 0;
-    wheel2.get().sprite_interpolated.animation_speed = 0;
+    const float y_suspension_offset = std::max(std::min(3.0f, -physics.v.y * 1.2f), -3.0f);
+    wheel1.get().set_position(physics.x - 8.0f, physics.y + 5.0f + y_suspension_offset);
+    wheel2.get().set_position(physics.x + 8.0f, physics.y + 5.0f + y_suspension_offset);
+
+    auto &wheel1_spr = wheel1.get().sprite_interpolated;
+    auto &wheel2_spr = wheel2.get().sprite_interpolated;
+
+    if (fabs(physics.v.x) > 0.5f)
+    {
+      wheel1_spr.animation_speed = dir_x;
+      wheel2_spr.animation_speed = dir_x;
+    }
+    else
+    {
+      wheel1_spr.animation_speed = 0;
+      wheel2_spr.animation_speed = 0;
+    }
+  }
+
+  if (barrel)
+  {
+    barrel.get().set_position(physics.x + 0.0f, physics.y - 4.0f + 1.0f - y_bump_offset);
+
+    auto &barrel_spr = barrel.get().sprite_interpolated;
+
+    if (dir_x != 0)
+    {
+      barrel_spr.sprite.scale.x  = dir_x;
+      barrel_spr.sprite.origin.x = 4 - 8 * dir_x;
+    }
+
+    if (dir_y == -1)
+    {
+      const float target_rotation = -90.0f * dir_x;
+      if (fabs(target_rotation - barrel_spr.sprite.rotation) > 90.0f)
+        barrel_spr.sprite.rotation = target_rotation;
+
+      barrel_spr.sprite.rotation = lerp(barrel_spr.sprite.rotation, target_rotation, 0.6f);
+    }
+    else
+    {
+      barrel_spr.sprite.rotation = lerp(barrel_spr.sprite.rotation, 0.0f, 0.6f);
+    }
   }
 }

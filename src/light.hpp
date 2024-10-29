@@ -13,6 +13,8 @@ struct Light
 
   int start_x { 0 };
   int start_y { 0 };
+  int x { 0 };
+  int y { 0 };
   float strength { 1.0f };
 private:
 };

@@ -1,0 +1,12 @@
+Game made by Kacper "Zyper" Zybała 2024
+MIT License
+
+Additional assets:
+Shader adapted, transformed and modified based on the shaders by:
+ - Flyguy https://www.shadertoy.com/view/MtjGRd  CC BY-NC-SA 3.0
+ - Tech_ https://www.shadertoy.com/view/7sfXDn  CC BY-NC-SA 3.0
+https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en
+
+Tools and libraries:
+- raylib library by 2013-2024 Ramon Santamaria (@raysan5) zlib License https://www.raylib.com/
+- LDtk by Sébastien Bénard (@deepnightfr) MIT License https://ldtk.io/

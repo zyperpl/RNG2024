@@ -39,8 +39,9 @@ struct Input
   State right;
   State up;
   State down;
-  State action_1;
-  State action_2;
+  State jump;
+  State shoot;
+  State special;
 
   State mouse_left;
   State mouse_right;
@@ -81,11 +82,17 @@ struct Input
     update_state(down, KEY_DOWN);
     update_state(down, KEY_S);
 
-    update_state(action_1, KEY_ONE);
-    update_state(action_1, KEY_Z);
+    update_state(special, KEY_ONE);
+    update_state(special, KEY_Z);
+    update_state(special, KEY_F);
 
-    update_state(action_2, KEY_TWO);
-    update_state(action_2, KEY_X);
+    update_state(jump, KEY_TWO);
+    update_state(jump, KEY_X);
+    update_state(jump, KEY_G);
+
+    update_state(shoot, KEY_THREE);
+    update_state(shoot, KEY_C);
+    update_state(shoot, KEY_H);
 
     update_state(mute, KEY_M);
 
@@ -165,8 +172,9 @@ struct Input
     update_continuous_state(right, KEY_RIGHT, KEY_D);
     update_continuous_state(up, KEY_UP, KEY_W, KEY_SPACE);
     update_continuous_state(down, KEY_DOWN, KEY_S);
-    update_continuous_state(action_1, KEY_ONE, KEY_Z);
-    update_continuous_state(action_2, KEY_TWO, KEY_X);
+    update_continuous_state(special, KEY_ONE, KEY_Z, KEY_F);
+    update_continuous_state(jump, KEY_TWO, KEY_X, KEY_G);
+    update_continuous_state(shoot, KEY_THREE, KEY_C, KEY_H);
     update_continuous_state(mute, KEY_M);
 
     update_continous_mouse_state(mouse_left, MOUSE_LEFT_BUTTON);

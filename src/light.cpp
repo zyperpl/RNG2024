@@ -17,6 +17,7 @@ Light::Light(const Level::Entity &entity)
 
 void Light::init()
 {
-
+  x = start_x;
+  y = start_y;
 }
 
