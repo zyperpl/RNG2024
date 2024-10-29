@@ -4,8 +4,10 @@
 
 #include "particles.hpp"
 #include "physics.hpp"
-#include "renderers.hpp"
 #include "utils.hpp"
+
+struct Light;
+struct SpriteRenderer;
 
 struct Player
 {
@@ -26,11 +28,16 @@ private:
   static constexpr int STANDING_BUFFER_MAX = 6;
   int landed { 0 };
   static constexpr int LANDED_MAX = 20;
+  int shoot_cooldown { 0 };
+  static constexpr int SHOOT_COOLDOWN_MAX = 16;
 
   ComponentReference<SpriteRenderer> body;
   ComponentReference<SpriteRenderer> wheel1;
   ComponentReference<SpriteRenderer> wheel2;
   ComponentReference<SpriteRenderer> barrel;
+  ComponentReference<Light> light;
+  Particle shoot_particle;
+  Particle jump_particle;
 };
 
 EXTERN_COMPONENT_TEMPLATE(Player);

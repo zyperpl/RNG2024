@@ -20,23 +20,23 @@ layout(location = 0) in vec2 fragTexCoord;
 layout(location = 30) uniform vec2 cameraPos;
 layout(location = 31) uniform vec2 resolution;
 
-#define MAX_LIGHTS 16
+#define MAX_LIGHTS 32
 layout(location = 32) uniform vec2 lightPos[MAX_LIGHTS];
-layout(location = 48) uniform float lightStrength[MAX_LIGHTS];
+layout(location = 32+MAX_LIGHTS) uniform float lightSize[MAX_LIGHTS];
+layout(location = 32+MAX_LIGHTS*2) uniform float lightIntensity[MAX_LIGHTS];
 
 layout(location = 0) out vec4 fragColor;
 
 float Bayer2(vec2 a)
 {
-  a = floor(a);
-  return fract(a.x / 2. + a.y * a.y * .75);
+  return fract(a.x * 0.5 + a.y * a.y * 0.75);
 }
 
-#define Bayer4(a)  (Bayer2(.5 * (a)) * .25 + Bayer2(a))
-#define Bayer8(a)  (Bayer4(.5 * (a)) * .25 + Bayer2(a))
-#define Bayer16(a) (Bayer8(.5 * (a)) * .25 + Bayer2(a))
-#define Bayer32(a) (Bayer16(.5 * (a)) * .25 + Bayer2(a))
-#define Bayer64(a) (Bayer32(.5 * (a)) * .25 + Bayer2(a))
+//#define Bayer4(a)  (Bayer2(.5 * (a)) * .25 + Bayer2(a))
+//#define Bayer8(a)  (Bayer4(.5 * (a)) * .25 + Bayer2(a))
+//#define Bayer16(a) (Bayer8(.5 * (a)) * .25 + Bayer2(a))
+//#define Bayer32(a) (Bayer16(.5 * (a)) * .25 + Bayer2(a))
+#define Bayer64(a) (Bayer2(.5 * (a)) * .25 + Bayer2(a))
 
 vec3 GetDitheredPalette(float x, float y, vec2 pixel)
 {
@@ -76,11 +76,12 @@ void main()
     vec2 lp              = vec2(lightPos[i].x - cameraPos.x, resolution.y - lightPos[i].y - cameraPos.y);
     vec2 lightDir        = normalize(lp - gl_FragCoord.xy);
     float lightDist      = length(lp - gl_FragCoord.xy) / 40.0;
-    float lightIntensity = pow(lightDist, -2.0) * lightStrength[i];
+
+    float intensity = clamp(pow(lightDist, -4.0) * lightSize[i], 0.0, 10.0) * lightIntensity[i];
 
     vec3 light    = normalize(vec3(lightDir, 1.0));
     float diffuse = min(max(dot(normal, light), 0.0), 0.9);
-    totalLight += diffuse * lightIntensity;
+    totalLight += diffuse * intensity;
   }
 
   vec3 color = GetDitheredPalette(t.b * 255.0 / 30.0, pow(t.r, 3.0) * totalLight, gl_FragCoord.xy + cameraPos);

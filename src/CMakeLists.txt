@@ -51,32 +51,36 @@ set(ENGINE_HEADERS
 
 set(GAME_SOURCES
   block.cpp
+  bullet.cpp
   component.cpp
   game.cpp
   level.cpp
   level_loader.cpp
+  light.cpp
   manager.cpp
   particles.cpp
   physics.cpp
   player.cpp
   renderers.cpp
-  light.cpp
+  sound.cpp
 )
 
 set(GAME_HEADERS
   block.hpp
+  bullet.hpp
   component.hpp
   game.hpp
   level.hpp
   level_definitions.hpp
   level_loader.hpp
+  light.hpp
   mask.hpp
   particles.hpp
   physics.hpp
   player.hpp
   renderers.hpp
+  sound.hpp
   utils.hpp
-  light.hpp
 )
 
 if (EMSCRIPTEN)

@@ -15,7 +15,8 @@ struct Light
   int start_y { 0 };
   int x { 0 };
   int y { 0 };
-  float strength { 1.0f };
+  float size { 1.0f };
+  float intensity { 1.0f };
 private:
 };
 

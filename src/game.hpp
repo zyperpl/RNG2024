@@ -41,6 +41,9 @@ struct Game final
   static void add_timer(Entity, std::function<void()> &&, size_t frames);
   static void add_particles(int x, int y, const Particle &type, size_t count = 1);
   [[nodiscard]] static ParticleBuilder particle_builder();
+  [[nodiscard]] static int64_t level_width();
+  [[nodiscard]] static int64_t level_height();
+  [[nodiscard]] static std::string_view level_name();
   [[nodiscard]] static size_t get_ticks();
 
 private:
@@ -81,5 +84,5 @@ private:
   friend void G_update_game();
   friend void G_draw_game(double, RenderTexture &, RenderTexture &);
 
-  bool debug_auto_shader_reload{ false };
+  bool debug_auto_shader_reload{ true };
 };

@@ -104,7 +104,8 @@ struct ParticleSystem
   void clear();
 
   size_t sprite_id(const std::string &filename);
-  const Sprite &get_sprite(size_t id);
+  const Sprite &get_sprite(size_t id) const;
+  Sprite &get_sprite(size_t id);
 
   int depth{ 0 };
   bool visible{ true };

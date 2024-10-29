@@ -38,6 +38,12 @@ extern "C"
     add_entity(Player());
 
     game->particle_system = add_component(create_entity(), ParticleSystem(-2));
+    auto &sprite = game->particle_system.get().get_sprite(game->particle_system.get().sprite_id("assets/tileset.png_dust"));
+    sprite.source_offset.x = 8;
+    sprite.source_offset.y = 216;
+    sprite.set_frame_width(8);
+    sprite.set_frame_height(8);
+    sprite.set_frame_count(1);
 
     auto &manager = Manager::get();
     manager.call_init();
@@ -89,13 +95,16 @@ extern "C"
 
     auto &manager = Manager::get();
 
-    const size_t MAX_LIGHTS = 16;
+    const size_t MAX_LIGHTS = 32;
     static Vector2 light_pos[MAX_LIGHTS];
-    static float light_strength[MAX_LIGHTS];
+    static float light_size[MAX_LIGHTS];
+    static float light_intensity[MAX_LIGHTS];
     for (size_t i = 0; i < MAX_LIGHTS; i++)
     {
       light_pos[i]      = Vector2{ -990.0f, -990.0f };
-      light_strength[i] = 0.0f;
+      light_size[i] = 0.0f;
+      light_intensity[i] = 0.0f;
+      light_size[i] = 1.0f;
     }
 
     size_t light_idx = 0;
@@ -109,28 +118,21 @@ extern "C"
       mouse_light_strength += 0.2f;
     if (mouse_light_strength < 0.0f)
       mouse_light_strength = 0.0f;
-    light_strength[light_idx] = mouse_light_strength;
+    light_intensity[light_idx] = mouse_light_strength;
     light_idx += 1;
-
-    if (!get_components<Player>().empty())
-    {
-      auto &player         = get_components<Player>().front();
-      auto &player_physics = get_component<Physics>(player.entity).get();
-
-      light_pos[light_idx].x    = player_physics.x;
-      light_pos[light_idx].y    = player_physics.y;
-      light_strength[light_idx] = 0.1f;
-      light_idx += 1;
-    }
 
     for (const auto &light : get_components<Light>())
     {
-      if (light.x + light.strength * 96.0f < camera.target.x - camera.offset.x)
+      if (light.x + 20 + light.intensity * 8 + light.size * 8 < camera.target.x - camera.offset.x || 
+          light.x - 20 - light.intensity * 8 - light.size * 8 > camera.target.x + camera.offset.x ||
+          light.y + 20 + light.intensity * 8 + light.size * 8 < camera.target.y - camera.offset.y ||
+          light.y - 20 - light.intensity * 8 - light.size * 8 > camera.target.y + camera.offset.y)
         continue;
 
       light_pos[light_idx].x    = light.x;
       light_pos[light_idx].y    = light.y;
-      light_strength[light_idx] = light.strength;
+      light_size[light_idx] = light.size;
+      light_intensity[light_idx] = light.intensity;
       light_idx += 1;
 
       if (light_idx >= MAX_LIGHTS)
@@ -206,9 +208,13 @@ extern "C"
         Vector2 camera_pos = { camera.target.x - camera.offset.x, camera.target.y - camera.offset.y };
         SetShaderValue(shader, cameraPos_loc, &camera_pos, SHADER_UNIFORM_VEC2);
 
-        const auto lightStrength_loc = GetShaderLocation(shader, "lightStrength");
-        assert(lightStrength_loc != -1);
-        SetShaderValueV(shader, lightStrength_loc, &light_strength, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
+        const auto lightSize_loc = GetShaderLocation(shader, "lightSize");
+        assert(lightSize_loc != -1);
+        SetShaderValueV(shader, lightSize_loc, &light_size, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
+
+        const auto lightIntensity_loc = GetShaderLocation(shader, "lightIntensity");
+        assert(lightIntensity_loc != -1);
+        SetShaderValueV(shader, lightIntensity_loc, &light_intensity, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
 
         SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), tileset);
         SetShaderValueTexture(shader, GetShaderLocation(shader, "texture1"), tileset_normal);
@@ -522,3 +528,19 @@ void Game::generate_palette_texture()
 
   UnloadImage(palette_image);
 }
+
+int64_t Game::level_width()
+{
+  return get().level.get_width();
+}
+
+int64_t Game::level_height()
+{
+  return get().level.get_height();
+}
+
+std::string_view Game::level_name()
+{
+  return get().level.get_name();
+}
+

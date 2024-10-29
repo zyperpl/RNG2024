@@ -54,6 +54,10 @@ void generate_entity(const std::string &component_name,
       file << "  void postupdate();\n";
     if (params.has_render)
       file << "  void render();\n";
+    if (params.has_destroyed)
+      file << "  void destroyed();\n";
+    if (params.has_collision)
+      file << "  void collision(Entity other);\n";
 
     file << "\n";
     file << "private:\n";
@@ -163,6 +167,7 @@ void generate_entity(const std::string &component_name,
       file << "void " << component_name << "::preupdate()\n";
       file << "{\n";
       file << "}\n";
+      file << "\n";
     }
 
     if (params.has_update)
@@ -170,6 +175,7 @@ void generate_entity(const std::string &component_name,
       file << "void " << component_name << "::update()\n";
       file << "{\n";
       file << "}\n";
+      file << "\n";
     }
 
     if (params.has_postupdate)
@@ -177,6 +183,7 @@ void generate_entity(const std::string &component_name,
       file << "void " << component_name << "::postupdate()\n";
       file << "{\n";
       file << "}\n";
+      file << "\n";
     }
 
     if (params.has_render)
@@ -184,6 +191,23 @@ void generate_entity(const std::string &component_name,
       file << "void " << component_name << "::render()\n";
       file << "{\n";
       file << "}\n";
+      file << "\n";
+    }
+
+    if (params.has_destroyed)
+    {
+      file << "void " << component_name << "::destroyed()\n";
+      file << "{\n";
+      file << "}\n";
+      file << "\n";
+    }
+
+    if (params.has_collision)
+    {
+      file << "void " << component_name << "::collision(Entity other)\n";
+      file << "{\n";
+      file << "}\n";
+      file << "\n";
     }
 
     file << "\n";

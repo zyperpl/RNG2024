@@ -15,6 +15,8 @@ struct GenerateEntityParams
   bool has_update{ false };
   bool has_postupdate{ false };
   bool has_render{ false };
+  bool has_destroyed { false };
+  bool has_collision { false };
 };
 
 void generate_entity(const std::string &component_name,

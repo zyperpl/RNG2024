@@ -236,6 +236,7 @@ void ParticleSystem::render()
 
       sprite.position = Vector2{ particle.x, particle.y };
       sprite.tint     = ColorAlpha(particle.color, alpha);
+      printf("frame: %d\n", frame);
       sprite.set_frame(frame);
       sprite.scale.x = particle.size;
       sprite.scale.y = particle.size;
@@ -264,7 +265,13 @@ size_t ParticleSystem::sprite_id(const std::string &filename)
   return add_sprite(filename);
 }
 
-const Sprite &ParticleSystem::get_sprite(size_t id)
+const Sprite &ParticleSystem::get_sprite(size_t id) const
+{
+  assert(id < sprites.size());
+  return sprites[id];
+}
+
+Sprite &ParticleSystem::get_sprite(size_t id)
 {
   assert(id < sprites.size());
   return sprites[id];
@@ -276,7 +283,16 @@ size_t ParticleSystem::add_sprite(const std::string &filename)
     return sprite_ids[filename];
 
   const size_t index = sprites.size();
-  sprites.emplace_back(filename);
+  if (filename.find('_') != std::string::npos)
+  {
+    const auto filename_substr = filename.substr(0, filename.find('_'));
+    printf("Mocking sprite: %s as %s\n", filename_substr.c_str(), filename.c_str());
+    sprites.emplace_back(filename_substr);
+  }
+  else
+  {
+    sprites.emplace_back(filename);
+  }
   sprite_ids.insert({ filename, index });
   return index;
 }

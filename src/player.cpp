@@ -1,9 +1,11 @@
 #include "player.hpp"
 
 #include "block.hpp"
+#include "bullet.hpp"
 #include "game.hpp"
 #include "input.hpp"
 #include "level.hpp"
+#include "light.hpp"
 #include "manager.hpp"
 #include "particles.hpp"
 #include "physics.hpp"
@@ -72,6 +74,24 @@ void Player::init()
     spr.set_centered();
     spr.origin.x -= 8;
   }
+
+  light = add_component(entity, Light());
+
+  shoot_particle = Game::particle_builder()
+                     .size(1.5f)
+                     .life(10, 10)
+                     .color(PALETTE_GRAY)
+                     .velocity({ -0.1f, -0.1f }, { 0.1f, 0.1f })
+                     .sprite("assets/tileset.png_dust")
+                     .build();
+
+  jump_particle = Game::particle_builder()
+                    .size(0.5f)
+                    .life(30, 30)
+                    .color(PALETTE_BLUE)
+                    .velocity({ -0.1f, -0.1f }, { 0.1f, 0.0f })
+                    .sprite("assets/tileset.png_dust")
+                    .build();
 }
 
 void Player::preupdate()
@@ -79,7 +99,7 @@ void Player::preupdate()
   assert(get_component<Physics>(entity) && "Player entity has no physics component");
 
   auto &physics = get_component<Physics>(entity).get();
-  
+
   landed = std::max(landed - 1, 0);
 
   if (physics.is_standing())
@@ -100,7 +120,7 @@ void Player::update()
   auto &physics = get_component<Physics>(entity).get();
   auto &input   = Input::get();
 
-  const auto speed = landed <= 0 ? 1.2f : 1.0f;
+  const auto speed = landed <= 0 ? 1.4f : 1.2f;
   const auto jump  = 3.6f;
   if (input.left)
   {
@@ -118,35 +138,51 @@ void Player::update()
   }
 
   if (input.up)
-  {
     dir_y = -1;
-  }
   else
-  {
     dir_y = 0;
-  }
 
   if (input.jump.pressed())
-  {
     jump_buffer = JUMP_BUFFER_MAX;
-  }
   else
-  {
     jump_buffer = std::max(jump_buffer - 1, 0);
-  }
 
   if (jump_buffer && standing_buffer)
   {
     physics.v.y = -jump;
 
-    jump_buffer = 0;
+    jump_particle.v.y = -jump * 0.1f;
+    Game::add_particles(physics.x - 8, physics.bottom(), jump_particle, 1);
+    Game::add_particles(physics.x + 8, physics.bottom(), jump_particle, 1);
+
+    jump_buffer     = 0;
     standing_buffer = 0;
   }
 
   if (!input.jump && physics.v.y < -1.0f)
-  {
     physics.v.y *= 0.9f;
+
+  if (input.shoot && shoot_cooldown <= 0)
+  {
+    shoot_cooldown = SHOOT_COOLDOWN_MAX;
+
+    light.get().intensity = std::min(1.0f, light.get().intensity + 0.1f);
+    light.get().x         = physics.x + (dir_y == 0 ? dir_x * 12.0f : 0.0f);
+    light.get().y         = physics.y - (-dir_y * 12.0f);
+
+    const int bullet_x = physics.x + (dir_y == 0 ? dir_x * 12.0f : 0.0f);
+    const int bullet_y = physics.y - 5 - (-dir_y * 12.0f);
+    add_entity(Bullet(bullet_x, bullet_y, dir_y == 0 ? dir_x * 2.0f : 0.0f, dir_y * 2.0f));
+
+    Game::add_particles(bullet_x, bullet_y, shoot_particle, 2);
+
+    auto &manager = Manager::get();
+    manager.call_init();
+
+    if (!physics.is_standing())
+      physics.v.x -= dir_x * 0.4f;
   }
+  shoot_cooldown = std::max(shoot_cooldown - 1, 0);
 }
 
 void Player::postupdate()
@@ -159,7 +195,7 @@ void Player::postupdate()
     body.get().set_position(physics.x, physics.y - y_bump_offset);
     if (dir_x != 0)
     {
-      auto &spr = body.get().sprite_interpolated.sprite;
+      auto &spr   = body.get().sprite_interpolated.sprite;
       spr.scale.x = lerp(spr.scale.x, dir_x, 0.8f);
     }
   }
@@ -209,5 +245,19 @@ void Player::postupdate()
     {
       barrel_spr.sprite.rotation = lerp(barrel_spr.sprite.rotation, 0.0f, 0.6f);
     }
+  }
+
+  if (light)
+  {
+    light.get().x                = lerp(light.get().x, physics.x, 0.6f);
+    light.get().y                = lerp(light.get().y, physics.y, 0.6f);
+    const float DEFAULT_INTENSITY = 0.2f;
+    light.get().intensity = DEFAULT_INTENSITY;
+
+    const float DEFAULT_SIZE = 1.0f;
+    float target_size = DEFAULT_SIZE;
+    if (fabs(physics.v.x) > 1.0f)
+      target_size = DEFAULT_SIZE + 2.0f * fabs(physics.v.x);
+    light.get().size = lerp(light.get().size, target_size, 0.6f);
   }
 }
