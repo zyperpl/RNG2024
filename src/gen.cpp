@@ -9,15 +9,16 @@
 
 const std::string src_path = "src/";
 
-void generate_entity(const std::string &component_name,
-                     const std::string &file_name,
-                     const GenerateEntityParams &params)
+void generate_entity(const std::string &component_name, const std::string &file_name, GenerateEntityParams params)
 {
   if (std::filesystem::exists(src_path + file_name + ".hpp") || std::filesystem::exists(src_path + file_name + ".cpp"))
   {
     fprintf(stderr, "Entity %s files already exists\n", file_name.c_str());
     return;
   }
+
+  if (params.has_postupdate_update_position)
+    params.has_postupdate = true;
 
   // hpp
   {
@@ -123,11 +124,13 @@ void generate_entity(const std::string &component_name,
     if (params.has_physics)
     {
       file << "  auto &physics = add_component(entity, Physics()).get();\n";
+      file << "  physics.mask = Mask::center_rect(8, 8);\n";
       if (params.is_level_entity)
       {
         file << "  physics.x = start_x;\n";
         file << "  physics.y = start_y;\n";
       }
+      file << "\n";
     }
 
     if (params.has_sprite_renderer)
@@ -137,6 +140,7 @@ void generate_entity(const std::string &component_name,
       {
         file << "  renderer.set_position(start_x, start_y);\n";
       }
+      file << "\n";
     }
 
     if (params.has_tile_renderer)
@@ -150,17 +154,20 @@ void generate_entity(const std::string &component_name,
       {
         file << "  auto &renderer = add_component(entity, TileRenderer()).get();\n";
       }
+      file << "\n";
     }
 
     if (params.has_particles)
-      file << "  particle = Game::particle_builder().build();\n";
+      file << "  particle = Game::particle_builder().build();\n\n";
 
     if (params.has_sounds)
-      file << "  sound = GameSound(\"\");\n";
+      file << "  //sound = GameSound();\n\n";
 
     file << "\n";
 
     file << "}\n";
+
+    file << "\n";
 
     if (params.has_preupdate)
     {
@@ -182,6 +189,16 @@ void generate_entity(const std::string &component_name,
     {
       file << "void " << component_name << "::postupdate()\n";
       file << "{\n";
+      if (params.has_postupdate_update_position)
+      {
+        if (params.has_sprite_renderer)
+          file << "  auto &renderer = get_component<SpriteRenderer>(entity).get();\n";
+        if (params.has_physics)
+        {
+          file << "  auto &physics = get_component<Physics>(entity).get();\n";
+          file << "  renderer.set_position(physics.x, physics.y);\n";
+        }
+      }
       file << "}\n";
       file << "\n";
     }

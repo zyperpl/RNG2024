@@ -1,7 +1,7 @@
 #include "light.hpp"
 
-#include "utils.hpp"
 #include "level.hpp"
+#include "utils.hpp"
 
 REGISTER_COMPONENT(Light);
 COMPONENT_TEMPLATE(Light);
@@ -21,4 +21,3 @@ void Light::init()
   x = start_x;
   y = start_y;
 }
-

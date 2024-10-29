@@ -14,11 +14,10 @@ struct GenerateEntityParams
   bool has_preupdate{ false };
   bool has_update{ false };
   bool has_postupdate{ false };
+  bool has_postupdate_update_position{ false };
   bool has_render{ false };
-  bool has_destroyed { false };
-  bool has_collision { false };
+  bool has_destroyed{ false };
+  bool has_collision{ false };
 };
 
-void generate_entity(const std::string &component_name,
-                     const std::string &file_name,
-                     const GenerateEntityParams &params);
+void generate_entity(const std::string &component_name, const std::string &file_name, GenerateEntityParams params);

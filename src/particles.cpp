@@ -282,9 +282,10 @@ size_t ParticleSystem::add_sprite(const std::string &filename)
     return sprite_ids[filename];
 
   const size_t index = sprites.size();
-  if (filename.find('_') != std::string::npos)
+  const char MOCK_SEPARATOR = ':';
+  if (filename.find(MOCK_SEPARATOR) != std::string::npos)
   {
-    const auto filename_substr = filename.substr(0, filename.find('_'));
+    const auto filename_substr = filename.substr(0, filename.find(MOCK_SEPARATOR));
     printf("Mocking sprite: %s as %s\n", filename_substr.c_str(), filename.c_str());
     sprites.emplace_back(filename_substr);
   }

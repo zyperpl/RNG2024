@@ -27,7 +27,7 @@ private:
   int start_x{ 0 };
   int start_y{ 0 };
   Vector2 initial_v{ 0, 0 };
-  int life { 120 };
+  int life{ 120 };
 };
 
 EXTERN_COMPONENT_TEMPLATE(Bullet);

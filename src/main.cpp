@@ -232,7 +232,6 @@ auto update_draw_frame()
 auto main() -> int
 {
 #if defined(DEBUG)
-  //generate_entity("Bullet", "bullet", { .is_level_entity = false, .has_particles = true, .has_sounds = true, .has_physics = true, .has_sprite_renderer = true, .has_update = true, .has_postupdate = true, .has_collision = true });
 #endif
 
   InitWindow(GAME_WIDTH * 4, GAME_HEIGHT * 4, GAME_TITLE);

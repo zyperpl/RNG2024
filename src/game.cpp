@@ -38,12 +38,24 @@ extern "C"
     add_entity(Player());
 
     game->particle_system = add_component(create_entity(), ParticleSystem(-2));
-    auto &sprite = game->particle_system.get().get_sprite(game->particle_system.get().sprite_id("assets/tileset.png_dust"));
-    sprite.source_offset.x = 8;
-    sprite.source_offset.y = 216;
-    sprite.set_frame_width(8);
-    sprite.set_frame_height(8);
-    sprite.set_frame_count(1);
+    {
+      auto &sprite =
+        game->particle_system.get().get_sprite(game->particle_system.get().sprite_id("assets/tileset.png:dust"));
+      sprite.source_offset.x = 8;
+      sprite.source_offset.y = 216;
+      sprite.set_frame_width(8);
+      sprite.set_frame_height(8);
+      sprite.set_frame_count(1);
+    }
+    {
+      auto &sprite =
+        game->particle_system.get().get_sprite(game->particle_system.get().sprite_id("assets/tileset.png:star"));
+      sprite.source_offset.x = 8+8;
+      sprite.source_offset.y = 216;
+      sprite.set_frame_width(8);
+      sprite.set_frame_height(8);
+      sprite.set_frame_count(1);
+    }
 
     auto &manager = Manager::get();
     manager.call_init();
@@ -101,16 +113,16 @@ extern "C"
     static float light_intensity[MAX_LIGHTS];
     for (size_t i = 0; i < MAX_LIGHTS; i++)
     {
-      light_pos[i]      = Vector2{ -990.0f, -990.0f };
-      light_size[i] = 0.0f;
+      light_pos[i]       = Vector2{ -990.0f, -990.0f };
+      light_size[i]      = 0.0f;
       light_intensity[i] = 0.0f;
-      light_size[i] = 1.0f;
+      light_size[i]      = 1.0f;
     }
 
-    size_t light_idx = 0;
-    auto &camera   = game.camera;
-    light_pos[light_idx].x = Input::get().game_mouse().x - camera.offset.x + camera.target.x;
-    light_pos[light_idx].y = Input::get().game_mouse().y - camera.offset.y + camera.target.y;
+    size_t light_idx                  = 0;
+    auto &camera                      = game.camera;
+    light_pos[light_idx].x            = Input::get().game_mouse().x - camera.offset.x + camera.target.x;
+    light_pos[light_idx].y            = Input::get().game_mouse().y - camera.offset.y + camera.target.y;
     static float mouse_light_strength = 0.0f;
     if (Input::get().mouse_wheel_down)
       mouse_light_strength -= 0.2f;
@@ -123,15 +135,21 @@ extern "C"
 
     for (const auto &light : get_components<Light>())
     {
-      if (light.x + 20 + light.intensity * 16 + light.size * 12 < camera.target.x - camera.offset.x || 
+      if (light.x + 20 + light.intensity * 16 + light.size * 12 < camera.target.x - camera.offset.x ||
           light.x - 20 - light.intensity * 16 - light.size * 12 > camera.target.x + camera.offset.x ||
           light.y + 20 + light.intensity * 8 + light.size * 8 < camera.target.y - camera.offset.y ||
           light.y - 20 - light.intensity * 8 - light.size * 8 > camera.target.y + camera.offset.y)
         continue;
 
-      light_pos[light_idx].x    = light.x;
-      light_pos[light_idx].y    = light.y;
-      light_size[light_idx] = light.size;
+      if (light.size < 0.1f)
+        continue;
+
+      if (light.intensity < 0.1f)
+        continue;
+
+      light_pos[light_idx].x     = light.x;
+      light_pos[light_idx].y     = light.y;
+      light_size[light_idx]      = light.size;
       light_intensity[light_idx] = light.intensity;
       light_idx += 1;
 
@@ -280,7 +298,7 @@ extern "C"
       }
 
       previous_mouse_position = mouse_position;
-#endif      
+#endif
     }
     EndTextureMode();
   }
@@ -543,4 +561,3 @@ std::string_view Game::level_name()
 {
   return get().level.get_name();
 }
-

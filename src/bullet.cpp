@@ -1,5 +1,6 @@
 #include "bullet.hpp"
 
+#include "enemy.hpp"
 #include "game.hpp"
 #include "particles.hpp"
 #include "physics.hpp"
@@ -13,9 +14,9 @@ COMPONENT_TEMPLATE(Bullet);
 void Bullet::init()
 {
   auto &physics = add_component(entity, Physics()).get();
-  physics.x = start_x;
-  physics.y = start_y;
-  physics.v = initial_v;
+  physics.x     = start_x;
+  physics.y     = start_y;
+  physics.v     = initial_v;
   physics.solid = false;
   physics.mask  = Mask::center_rect(8, 8);
 
@@ -35,7 +36,7 @@ void Bullet::init()
                      .life(10, 20)
                      .color(PALETTE_GRAY)
                      .velocity({ 0, 0 }, { -0.5f, -0.5f }, { 0.5f, 0.5f })
-                     .sprite("assets/tileset.png_dust")
+                     .sprite("assets/tileset.png:star")
                      .build();
 
   hit_particle = Game::particle_builder()
@@ -43,7 +44,7 @@ void Bullet::init()
                    .life(10, 20)
                    .color(PALETTE_RED)
                    .velocity({ 0, 0 }, { -0.5f, -0.5f }, { 0.5f, 0.5f })
-                   .sprite("assets/tileset.png_dust")
+                   .sprite("assets/tileset.png:dust")
                    .build();
 }
 void Bullet::update()
@@ -60,7 +61,7 @@ void Bullet::postupdate()
 
   renderer.set_position(physics.x, physics.y);
 
-  const auto &level_width = Game::level_width();
+  const auto &level_width  = Game::level_width();
   const auto &level_height = Game::level_height();
 
   life = std::max(life - 1, 0);
@@ -86,6 +87,17 @@ void Bullet::collision(Entity other)
   if (other_physics.solid)
   {
     Game::add_particles(physics.x, physics.y, hit_particle, 10);
+    destroy_entity(entity);
+  }
+
+  if (auto hurtable = get_component<Hurtable>(other); hurtable)
+  {
+    auto &hurtable_ref = hurtable.get();
+    hurtable_ref.hurt(60);
+
+    other_physics.v.y = -2.0f;
+    Game::add_particles(physics.x, physics.y, trail_particle, 4);
+
     destroy_entity(entity);
   }
 }

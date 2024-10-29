@@ -82,7 +82,7 @@ void Player::init()
                      .life(10, 10)
                      .color(PALETTE_GRAY)
                      .velocity({ -0.1f, -0.1f }, { 0.1f, 0.1f })
-                     .sprite("assets/tileset.png_dust")
+                     .sprite("assets/tileset.png:dust")
                      .build();
 
   jump_particle = Game::particle_builder()
@@ -90,7 +90,7 @@ void Player::init()
                     .life(30, 30)
                     .color(PALETTE_BLUE)
                     .velocity({ -0.1f, -0.1f }, { 0.1f, 0.0f })
-                    .sprite("assets/tileset.png_dust")
+                    .sprite("assets/tileset.png:dust")
                     .build();
 }
 
@@ -261,13 +261,13 @@ void Player::postupdate()
 
   if (light)
   {
-    light.get().x                = lerp(light.get().x, physics.x, 0.6f);
-    light.get().y                = lerp(light.get().y, physics.y, 0.6f);
+    light.get().x                 = lerp(light.get().x, physics.x, 0.6f);
+    light.get().y                 = lerp(light.get().y, physics.y, 0.6f);
     const float DEFAULT_INTENSITY = 0.2f;
-    light.get().intensity = DEFAULT_INTENSITY;
+    light.get().intensity         = DEFAULT_INTENSITY;
 
     const float DEFAULT_SIZE = 1.0f;
-    float target_size = DEFAULT_SIZE;
+    float target_size        = DEFAULT_SIZE;
     if (fabs(physics.v.x) > 1.0f)
       target_size = DEFAULT_SIZE + 2.0f * fabs(physics.v.x);
     light.get().size = lerp(light.get().size, target_size, 0.6f);

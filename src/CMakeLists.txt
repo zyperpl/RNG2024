@@ -53,7 +53,9 @@ set(GAME_SOURCES
   block.cpp
   bullet.cpp
   component.cpp
+  enemy.cpp
   game.cpp
+  hurtable.cpp
   level.cpp
   level_loader.cpp
   light.cpp
@@ -69,7 +71,9 @@ set(GAME_HEADERS
   block.hpp
   bullet.hpp
   component.hpp
+  enemy.hpp
   game.hpp
+  hurtable.hpp
   level.hpp
   level_definitions.hpp
   level_loader.hpp

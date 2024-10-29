@@ -98,10 +98,10 @@ public:
 
   inline void set_frame_count(int8_t count)
   {
-    frame_count = count;
+    frame_count             = count;
     default_tag.start_frame = 0;
     default_tag.end_frame   = count - 1;
-    tag = default_tag;
+    tag                     = default_tag;
   }
 
 protected:
