@@ -74,15 +74,34 @@ void Player::init()
   }
 }
 
-void Player::preupdate() {}
+void Player::preupdate()
+{
+  assert(get_component<Physics>(entity) && "Player entity has no physics component");
+
+  auto &physics = get_component<Physics>(entity).get();
+  
+  landed = std::max(landed - 1, 0);
+
+  if (physics.is_standing())
+  {
+    if (standing_buffer <= 0)
+      landed = LANDED_MAX;
+
+    standing_buffer = STANDING_BUFFER_MAX;
+  }
+  else
+  {
+    standing_buffer = std::max(standing_buffer - 1, 0);
+  }
+}
 
 void Player::update()
 {
   auto &physics = get_component<Physics>(entity).get();
   auto &input   = Input::get();
 
-  const auto speed = 1.0f;
-  const auto jump  = 3.0f;
+  const auto speed = landed <= 0 ? 1.2f : 1.0f;
+  const auto jump  = 3.6f;
   if (input.left)
   {
     physics.v.x = -speed;
@@ -95,7 +114,7 @@ void Player::update()
   }
   else
   {
-    physics.v.x *= 0.8f;
+    physics.v.x *= 0.85f;
   }
 
   if (input.up)
@@ -107,12 +126,26 @@ void Player::update()
     dir_y = 0;
   }
 
-  if (input.jump)
+  if (input.jump.pressed())
   {
-    if (physics.is_standing())
-    {
-      physics.v.y = -jump;
-    }
+    jump_buffer = JUMP_BUFFER_MAX;
+  }
+  else
+  {
+    jump_buffer = std::max(jump_buffer - 1, 0);
+  }
+
+  if (jump_buffer && standing_buffer)
+  {
+    physics.v.y = -jump;
+
+    jump_buffer = 0;
+    standing_buffer = 0;
+  }
+
+  if (!input.jump && physics.v.y < -1.0f)
+  {
+    physics.v.y *= 0.9f;
   }
 }
 
@@ -120,12 +153,15 @@ void Player::postupdate()
 {
   auto &physics = get_component<Physics>(entity).get();
 
-  const int y_bump_offset = physics.x / 12 % 2 == 0;
+  const int y_bump_offset = (physics.x / 12 % 2 == 0) - std::min(landed / 2.0f, 2.0f) + 1.0f;
   if (body)
   {
     body.get().set_position(physics.x, physics.y - y_bump_offset);
     if (dir_x != 0)
-      body.get().sprite_interpolated.sprite.scale.x = dir_x;
+    {
+      auto &spr = body.get().sprite_interpolated.sprite;
+      spr.scale.x = lerp(spr.scale.x, dir_x, 0.8f);
+    }
   }
 
   if (wheel1 && wheel2)
