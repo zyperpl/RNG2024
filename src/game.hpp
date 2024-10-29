@@ -84,5 +84,5 @@ private:
   friend void G_update_game();
   friend void G_draw_game(double, RenderTexture &, RenderTexture &);
 
-  bool debug_auto_shader_reload{ true };
+  bool debug_auto_shader_reload{ false };
 };

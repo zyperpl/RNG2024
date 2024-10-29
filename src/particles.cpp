@@ -120,7 +120,7 @@ ParticleBuilder &ParticleBuilder::sprite(const std::string &filename)
   const auto &sprite = system.get_sprite(part.sprite_id);
   part.frame_min     = 0;
   part.frame_max     = sprite.get_frame_count();
-  part.frame         = GetRandomValue(0, part.frame_max);
+  part.frame         = GetRandomValue(0, part.frame_max - 1);
   return *this;
 }
 
@@ -154,7 +154,7 @@ void ParticleSystem::add_particle(int x, int y, const Particle &type)
   part.v.x += part.v_min.x + (part.v_max.x - part.v_min.x) * randf();
   part.v.y += part.v_min.y + (part.v_max.y - part.v_min.y) * randf();
 
-  part.frame = static_cast<float>(GetRandomValue(part.frame_min, part.frame_max));
+  part.frame = static_cast<float>(GetRandomValue(part.frame_min, part.frame_max - 1));
 
   particles.push_back(part);
 }
@@ -236,7 +236,6 @@ void ParticleSystem::render()
 
       sprite.position = Vector2{ particle.x, particle.y };
       sprite.tint     = ColorAlpha(particle.color, alpha);
-      printf("frame: %d\n", frame);
       sprite.set_frame(frame);
       sprite.scale.x = particle.size;
       sprite.scale.y = particle.size;

@@ -78,7 +78,7 @@ void Player::init()
   light = add_component(entity, Light());
 
   shoot_particle = Game::particle_builder()
-                     .size(1.5f)
+                     .size(0.8f, 1.1f)
                      .life(10, 10)
                      .color(PALETTE_GRAY)
                      .velocity({ -0.1f, -0.1f }, { 0.1f, 0.1f })
@@ -105,7 +105,17 @@ void Player::preupdate()
   if (physics.is_standing())
   {
     if (standing_buffer <= 0)
+    {
       landed = LANDED_MAX;
+
+      jump_particle.v.x = physics.v.x * 0.2f + physics.v_previous.y * 0.1f;
+      jump_particle.v.y = -0.1f;
+      Game::add_particles(physics.x + 8, physics.bottom() + 2, jump_particle, 2);
+
+      jump_particle.v.x = physics.v.x * 0.2f + -physics.v_previous.y * 0.1f;
+      jump_particle.v.y = -0.1f;
+      Game::add_particles(physics.x - 8, physics.bottom() + 2, jump_particle, 2);
+    }
 
     standing_buffer = STANDING_BUFFER_MAX;
   }
@@ -151,9 +161,11 @@ void Player::update()
   {
     physics.v.y = -jump;
 
+    jump_particle.v.x = 0.1f;
     jump_particle.v.y = -jump * 0.1f;
-    Game::add_particles(physics.x - 8, physics.bottom(), jump_particle, 1);
-    Game::add_particles(physics.x + 8, physics.bottom(), jump_particle, 1);
+    Game::add_particles(physics.x - 4, physics.bottom(), jump_particle, 1);
+    jump_particle.v.x = -0.1f;
+    Game::add_particles(physics.x + 4, physics.bottom(), jump_particle, 1);
 
     jump_buffer     = 0;
     standing_buffer = 0;

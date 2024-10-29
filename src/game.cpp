@@ -123,8 +123,8 @@ extern "C"
 
     for (const auto &light : get_components<Light>())
     {
-      if (light.x + 20 + light.intensity * 8 + light.size * 8 < camera.target.x - camera.offset.x || 
-          light.x - 20 - light.intensity * 8 - light.size * 8 > camera.target.x + camera.offset.x ||
+      if (light.x + 20 + light.intensity * 16 + light.size * 12 < camera.target.x - camera.offset.x || 
+          light.x - 20 - light.intensity * 16 - light.size * 12 > camera.target.x + camera.offset.x ||
           light.y + 20 + light.intensity * 8 + light.size * 8 < camera.target.y - camera.offset.y ||
           light.y - 20 - light.intensity * 8 - light.size * 8 > camera.target.y + camera.offset.y)
         continue;
