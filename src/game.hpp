@@ -45,6 +45,7 @@ struct Game final
   [[nodiscard]] static int64_t level_height();
   [[nodiscard]] static std::string_view level_name();
   [[nodiscard]] static size_t get_ticks();
+  static void skip_ticks(size_t count);
 
 private:
   [[nodiscard]] static Game &get();
@@ -69,6 +70,8 @@ private:
 
   size_t ticks{ 0 };
   size_t frames{ 0 };
+
+  size_t skip_ticks_count { 0 };
 
   Camera2D camera;
   NRL::RenderTexture render_texture{ 8, 8 };

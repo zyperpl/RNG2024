@@ -50,7 +50,7 @@ extern "C"
     {
       auto &sprite =
         game->particle_system.get().get_sprite(game->particle_system.get().sprite_id("assets/tileset.png:star"));
-      sprite.source_offset.x = 8+8;
+      sprite.source_offset.x = 8 + 8;
       sprite.source_offset.y = 216;
       sprite.set_frame_width(8);
       sprite.set_frame_height(8);
@@ -387,6 +387,12 @@ extern "C"
     manager.call_destroy();
     manager.call_init();
 
+    if (game->skip_ticks_count > 0)
+    {
+      game->skip_ticks_count = std::max(game->skip_ticks_count - 1ul, 0ul);
+      return;
+    }
+
     for (auto &component_id : manager.preupdate_components)
     {
       auto &container = manager.component_containers[component_id];
@@ -560,4 +566,9 @@ int64_t Game::level_height()
 std::string_view Game::level_name()
 {
   return get().level.get_name();
+}
+
+void Game::skip_ticks(size_t count)
+{
+  get().skip_ticks_count += count;
 }

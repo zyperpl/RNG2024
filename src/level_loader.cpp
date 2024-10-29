@@ -209,16 +209,16 @@ void LevelLoader::unload_project()
   return 0;
 }
 
-[[nodiscard]] static Level::TilesVec load_tiles(const ldtk::LayerInstance &layer)
+[[nodiscard]] static Level::TilesVec load_tiles(const ldtk::LayerInstance &layer, const std::vector<ldtk::TileInstance> &layer_tiles)
 {
-  ASSERT_RET_VAL(!layer.grid_tiles.empty(), "No grid tiles found", {});
+  ASSERT_RET_VAL(!layer_tiles.empty(), "No layer tiles found", {});
 
-  Level::TilesVec tiles;
+  Level::TilesVec ret_tiles;
 
   const auto &grid_size   = layer.grid_size;
   const auto &tileset_uid = layer.tileset_def_uid.value_or(0);
 
-  for (const auto &tile : layer.grid_tiles)
+  for (const auto &tile : layer_tiles)
   {
     ASSERT_RET_VAL(tile.px.size() >= 2, "Incorrect tile px size", tiles);
     ASSERT_RET_VAL(tile.src.size() >= 2, "Incorrect tile src size", tiles);
@@ -234,10 +234,10 @@ void LevelLoader::unload_project()
     t.source_position.source_x = tile.src[0];
     t.source_position.source_y = tile.src[1];
 
-    tiles.push_back(t);
+    ret_tiles.push_back(t);
   }
 
-  return tiles;
+  return ret_tiles;
 }
 
 [[nodiscard]] static inline Level::Tile load_tile(const ldtk::TilesetRectangle &rect)
@@ -400,7 +400,14 @@ void LevelLoader::load(const std::string &name)
     if (!layer.grid_tiles.empty())
     {
       ASSERT_RET(!this->tilesets.empty(), "No tilesets found");
-      const auto &&layer_tiles = load_tiles(layer);
+      const auto &&layer_tiles = load_tiles(layer, layer.grid_tiles);
+      this->tiles.insert(std::end(this->tiles), std::begin(layer_tiles), std::end(layer_tiles));
+    }
+
+    if (!layer.auto_layer_tiles.empty())
+    {
+      ASSERT_RET(!this->tilesets.empty(), "No tilesets found");
+      const auto &&layer_tiles = load_tiles(layer, layer.auto_layer_tiles);
       this->tiles.insert(std::end(this->tiles), std::begin(layer_tiles), std::end(layer_tiles));
     }
 

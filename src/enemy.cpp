@@ -101,6 +101,7 @@ void Enemy::postupdate()
   {
     light.intensity = 1.0f;
     Game::add_particles(physics.x, physics.y, hurt_particle, 2);
+    Game::skip_ticks(1);
 
     if (hurtable.is_dead())
     {
@@ -113,11 +114,12 @@ void Enemy::postupdate()
         Game::add_particles(part_x, part_y, death_particle, 2);
       }
       renderer.sprite_interpolated.visible = false;
-      physics.collidable = false;
-      physics.solid = false;
-      physics.do_update = false;
+      physics.collidable                   = false;
+      physics.solid                        = false;
+      physics.do_update                    = false;
 
       Game::add_timer(entity, [&] { destroy_entity(entity); }, 30);
+      Game::skip_ticks(1);
     }
   }
 
