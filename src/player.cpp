@@ -2,7 +2,9 @@
 
 #include "block.hpp"
 #include "bullet.hpp"
+#include "enemy.hpp"
 #include "game.hpp"
+#include "hurtable.hpp"
 #include "input.hpp"
 #include "level.hpp"
 #include "light.hpp"
@@ -11,8 +13,6 @@
 #include "physics.hpp"
 #include "renderers.hpp"
 #include "utils.hpp"
-#include "hurtable.hpp"
-#include "enemy.hpp"
 
 REGISTER_COMPONENT(Player);
 COMPONENT_TEMPLATE(Player);
@@ -28,7 +28,7 @@ void Player::init()
   physics.gravity = 0.2f;
 
   auto &hurtable = add_component(entity, Hurtable()).get();
-  hurtable.set_max_health(100);
+  hurtable.set_max_health(10);
 
   {
     body                = add_component(entity, SpriteRenderer("assets/tileset.png"));
@@ -204,18 +204,22 @@ void Player::update()
 
 void Player::postupdate()
 {
-  auto &physics = get_component<Physics>(entity).get();
+  auto &physics  = get_component<Physics>(entity).get();
   auto &hurtable = get_component<Hurtable>(entity).get();
 
   const int y_bump_offset = (physics.x / 12 % 2 == 0) - std::min(landed / 2.0f, 2.0f) + 1.0f;
   if (body)
   {
+
     body.get().set_position(physics.x, physics.y - y_bump_offset);
     if (dir_x != 0)
     {
-      auto &spr   = body.get().sprite_interpolated.sprite;
+      auto &spr = body.get().sprite_interpolated.sprite;
       spr.scale.x = lerp(spr.scale.x, dir_x, 0.8f);
     }
+
+    auto &spr_inter = body.get().sprite_interpolated;
+    spr_inter.visible = hurtable.is_invincible() ? (Game::tick() / 3 % 2 == 0) : true;
   }
 
   if (wheel1 && wheel2)
@@ -288,21 +292,21 @@ void Player::postupdate()
 
 void Player::collision(Entity other)
 {
-  auto &physics = get_component<Physics>(entity).get();
+  auto &physics  = get_component<Physics>(entity).get();
   auto &hurtable = get_component<Hurtable>(entity).get();
 
   auto other_physics_ref = get_component<Physics>(other);
 
   if (auto enemy_ref = get_component<Enemy>(other))
   {
-    int hit_point_x { physics.x };
-    int hit_point_y { physics.y };
+    int hit_point_x{ physics.x };
+    int hit_point_y{ physics.y };
 
     if (other_physics_ref)
     {
       auto &other_physics = other_physics_ref.get();
-      hit_point_x = other_physics.x;
-      hit_point_y = other_physics.y;
+      hit_point_x         = other_physics.x;
+      hit_point_y         = other_physics.y;
     }
 
     hurtable.hurt(1, hit_point_x, hit_point_y);

@@ -396,6 +396,7 @@ public:
     while (!entity_destroy_queue.empty())
     {
       auto entity = entity_destroy_queue.front();
+
       for (auto &component_type : destroyed_components)
       {
         auto &container = component_containers[component_type];

@@ -48,6 +48,7 @@ void Enemy::init()
       physics.gravity = 0.1f;
 
       hurtable.set_max_health(3);
+      hurtable.set_max_invincibility(30);
 
       sprite.set_frame_width(16);
       sprite.set_frame_height(16);
@@ -61,6 +62,7 @@ void Enemy::init()
       physics.gravity = 0.01f;
 
       hurtable.set_max_health(2);
+      hurtable.set_max_invincibility(60);
 
       sprite.set_frame_width(16);
       sprite.set_frame_height(16);
@@ -232,6 +234,8 @@ void Enemy::postupdate()
 
   auto &light    = get_component<Light>(entity).get();
   auto &renderer = get_component<SpriteRenderer>(entity).get();
+  auto &hurtable = get_component<Hurtable>(entity).get();
+
   renderer.set_position(physics.x, physics.y);
 
   if (type == Type::Slime)
@@ -246,10 +250,11 @@ void Enemy::postupdate()
     renderer.sprite_interpolated.sprite.set_frame_durations({ fabs(physics.v.x) < 0.1f ? 200 : 100, 100 });
   }
 
+  renderer.sprite_interpolated.visible = hurtable.is_invincible() ? (Game::tick() / 3 % 2 == 0) : true;
+
   if (dir_x != 0)
     renderer.sprite_interpolated.sprite.scale.x = static_cast<float>(dir_x);
 
-  auto &hurtable = get_component<Hurtable>(entity).get();
   if (hurtable.process())
   {
     hurted          = true;
@@ -273,7 +278,7 @@ void Enemy::postupdate()
       physics.solid                        = false;
       physics.do_update                    = false;
 
-      Game::add_timer(entity, [&] { destroy_entity(entity); }, 30);
+      Game::add_timer(entity, [entity = entity] { destroy_entity(entity); }, 30);
       Game::skip_ticks(1);
     }
   }
