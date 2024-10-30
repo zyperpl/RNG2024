@@ -17,6 +17,7 @@ struct Player
   void preupdate();
   void update();
   void postupdate();
+  void collision(Entity other);
 
 private:
   int dir_x{ 1 };

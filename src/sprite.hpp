@@ -96,6 +96,12 @@ public:
     frame_durations = durations;
   }
 
+  inline void set_frame_durations(int32_t duration)
+  {
+    frame_durations.resize(frame_count);
+    std::fill_n(frame_durations.begin(), frame_count, duration);
+  }
+
   inline void set_frame_count(int8_t count)
   {
     frame_count             = count;

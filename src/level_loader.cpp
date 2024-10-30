@@ -209,7 +209,8 @@ void LevelLoader::unload_project()
   return 0;
 }
 
-[[nodiscard]] static Level::TilesVec load_tiles(const ldtk::LayerInstance &layer, const std::vector<ldtk::TileInstance> &layer_tiles)
+[[nodiscard]] static Level::TilesVec load_tiles(const ldtk::LayerInstance &layer,
+                                                const std::vector<ldtk::TileInstance> &layer_tiles)
 {
   ASSERT_RET_VAL(!layer_tiles.empty(), "No layer tiles found", {});
 
@@ -220,8 +221,8 @@ void LevelLoader::unload_project()
 
   for (const auto &tile : layer_tiles)
   {
-    ASSERT_RET_VAL(tile.px.size() >= 2, "Incorrect tile px size", tiles);
-    ASSERT_RET_VAL(tile.src.size() >= 2, "Incorrect tile src size", tiles);
+    ASSERT_RET_VAL(tile.px.size() >= 2, "Incorrect tile px size", ret_tiles);
+    ASSERT_RET_VAL(tile.src.size() >= 2, "Incorrect tile src size", ret_tiles);
 
     Level::Tile t;
     t.tileset_id               = tileset_uid;

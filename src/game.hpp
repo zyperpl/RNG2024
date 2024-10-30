@@ -46,6 +46,8 @@ struct Game final
   [[nodiscard]] static std::string_view level_name();
   [[nodiscard]] static size_t get_ticks();
   static void skip_ticks(size_t count);
+  [[nodiscard]] static bool on_screen(Rectangle rect);
+  static void defer_draw(Entity entity, std::function<void()> &&callback);
 
 private:
   [[nodiscard]] static Game &get();
@@ -71,7 +73,7 @@ private:
   size_t ticks{ 0 };
   size_t frames{ 0 };
 
-  size_t skip_ticks_count { 0 };
+  size_t skip_ticks_count{ 0 };
 
   Camera2D camera;
   NRL::RenderTexture render_texture{ 8, 8 };
@@ -80,6 +82,9 @@ private:
   ComponentReference<ParticleSystem> particle_system;
   Music music;
   bool mute{ true };
+
+  void draw_deferred();
+  std::vector<std::pair<Entity, std::function<void()>>> deferred_draws;
 
   friend void G_create_game();
   friend void G_reload_game();

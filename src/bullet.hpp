@@ -8,8 +8,9 @@
 struct Bullet
 {
   COMPONENT(Bullet);
-  Bullet(int x, int y, float vx, float vy)
-    : start_x{ x }
+  Bullet(Entity owner, int x, int y, float vx, float vy)
+    : owner{ owner }
+    , start_x{ x }
     , start_y{ y }
     , initial_v{ vx, vy }
   {
@@ -21,6 +22,7 @@ struct Bullet
   void collision(Entity other);
 
 private:
+  Entity owner { INVALID_ENTITY };
   Particle trail_particle;
   Particle hit_particle;
   GameSound sound;

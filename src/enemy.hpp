@@ -9,6 +9,12 @@
 
 struct Enemy
 {
+  enum class Type
+  {
+    Slime,
+    Bat
+  };
+
   COMPONENT(Enemy);
   Enemy(const Level::Entity &entity);
 
@@ -18,10 +24,14 @@ struct Enemy
 
 private:
   Particle hurt_particle;
+  Particle hurt_particle2;
   Particle death_particle;
   int start_x{ 0 };
   int start_y{ 0 };
-  int dir_x { -1 };
+  int dir_x{ -1 };
+  bool hurted{ false };
+  Vector2 target{ 0, 0 };
+  Type type{ Type::Slime };
 };
 
 EXTERN_COMPONENT_TEMPLATE(Enemy);

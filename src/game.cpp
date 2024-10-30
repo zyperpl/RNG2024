@@ -7,6 +7,7 @@
 #include <raylib.h>
 
 #include "component.hpp"
+#include "hurtable.hpp"
 #include "input.hpp"
 #include "level.hpp"
 #include "light.hpp"
@@ -51,6 +52,15 @@ extern "C"
       auto &sprite =
         game->particle_system.get().get_sprite(game->particle_system.get().sprite_id("assets/tileset.png:star"));
       sprite.source_offset.x = 8 + 8;
+      sprite.source_offset.y = 216;
+      sprite.set_frame_width(8);
+      sprite.set_frame_height(8);
+      sprite.set_frame_count(1);
+    }
+    {
+      auto &sprite =
+        game->particle_system.get().get_sprite(game->particle_system.get().sprite_id("assets/tileset.png:bit"));
+      sprite.source_offset.x = 8 + 8 + 8;
       sprite.source_offset.y = 216;
       sprite.set_frame_width(8);
       sprite.set_frame_height(8);
@@ -111,14 +121,17 @@ extern "C"
     static Vector2 light_pos[MAX_LIGHTS];
     static float light_size[MAX_LIGHTS];
     static float light_intensity[MAX_LIGHTS];
-    for (size_t i = 0; i < MAX_LIGHTS; i++)
+    auto clear_lights = [&]()
     {
-      light_pos[i]       = Vector2{ -990.0f, -990.0f };
-      light_size[i]      = 0.0f;
-      light_intensity[i] = 0.0f;
-      light_size[i]      = 1.0f;
-    }
-
+      for (size_t i = 0; i < MAX_LIGHTS; i++)
+      {
+        light_pos[i]       = Vector2{ -990.0f, -990.0f };
+        light_size[i]      = 0.0f;
+        light_intensity[i] = 0.0f;
+        light_size[i]      = 1.0f;
+      }
+    };
+    clear_lights();
     size_t light_idx                  = 0;
     auto &camera                      = game.camera;
     light_pos[light_idx].x            = Input::get().game_mouse().x - camera.offset.x + camera.target.x;
@@ -251,6 +264,12 @@ extern "C"
     {
       game.dither_fx.draw_texture(target_source(game_render_texture));
 
+      BeginMode2D(camera);
+      {
+        game.draw_deferred();
+      }
+      EndMode2D();
+
 #if defined(DEBUG)
       DrawTexture(game.palette_texture, 2, 2, WHITE);
       DrawText(TextFormat("Lights: %zu", light_idx), 2, 12 + 1, 10, PALETTE_BLACK);
@@ -265,9 +284,103 @@ extern "C"
     [[maybe_unused]] const auto mouse_position       = INPUT.interface_mouse();
     [[maybe_unused]] const auto &interface_texture_w = interface_render_texture.texture.width;
     [[maybe_unused]] const auto &interface_texture_h = interface_render_texture.texture.height;
+
+    clear_lights();
+    light_idx                  = 0;
+    light_pos[light_idx].x     = interface_texture_w / 4.0f;
+    light_pos[light_idx].y     = interface_texture_h / 2.0f;
+    light_size[light_idx]      = 128.0f;
+    light_intensity[light_idx] = 1.2f;
+
+    if (game.dither_fx.enable())
+    {
+      auto &shader        = game.dither_fx.shader.shader;
+      const auto res_vec2 = Vector2{ static_cast<float>(interface_render_texture.texture.width),
+                                     static_cast<float>(interface_render_texture.texture.height) };
+      SetShaderValue(shader, GetShaderLocation(shader, "resolution"), &res_vec2, SHADER_UNIFORM_VEC2);
+
+      const auto lightPos_loc = GetShaderLocation(shader, "lightPos");
+      assert(lightPos_loc != -1);
+      SetShaderValueV(shader, lightPos_loc, &light_pos, SHADER_UNIFORM_VEC2, MAX_LIGHTS);
+
+      const auto cameraPos_loc = GetShaderLocation(shader, "cameraPos");
+      assert(cameraPos_loc != -1);
+      Vector2 camera_pos{ 0, 0 };
+      SetShaderValue(shader, cameraPos_loc, &camera_pos, SHADER_UNIFORM_VEC2);
+
+      const auto lightSize_loc = GetShaderLocation(shader, "lightSize");
+      assert(lightSize_loc != -1);
+      SetShaderValueV(shader, lightSize_loc, &light_size, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
+
+      const auto lightIntensity_loc = GetShaderLocation(shader, "lightIntensity");
+      assert(lightIntensity_loc != -1);
+      SetShaderValueV(shader, lightIntensity_loc, &light_intensity, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
+
+      SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), tileset);
+      SetShaderValueTexture(shader, GetShaderLocation(shader, "texture1"), tileset_normal);
+      SetShaderValueTexture(shader, GetShaderLocation(shader, "texture2"), game.palette_texture);
+
+      ClearBackground(BLANK);
+      static Sprite energy_bar_bg("assets/tileset.png");
+      static Sprite energy_bar("assets/tileset.png");
+      energy_bar_bg.set_frame_width(8);
+      energy_bar_bg.set_frame_height(4);
+      energy_bar_bg.source_offset.x = 0;
+      energy_bar_bg.source_offset.y = 172;
+      energy_bar_bg.set_frame_count(1);
+
+      energy_bar.set_frame_width(8);
+      energy_bar.set_frame_height(energy_bar_bg.get_height());
+      energy_bar.source_offset.x = energy_bar_bg.get_width();
+
+      energy_bar.source_offset.y = energy_bar_bg.source_offset.y;
+      energy_bar.set_frame_count(6);
+      energy_bar.set_frame_durations(120);
+      energy_bar.animate();
+
+      if (!players.empty())
+      {
+        const auto &player         = players.front();
+        const auto player_hurtable = get_component<Hurtable>(player.entity).get();
+
+        const int health     = player_hurtable.health / 4;
+        const int max_health = player_hurtable.max_health / 4;
+
+        static int draw_health = health;
+
+        if (draw_health < health || health < max_health * 0.3)
+          draw_health = health;
+        else
+          draw_health = Lerp(draw_health, health, 0.1f);
+
+        const int cell_h = energy_bar.get_height();
+        const int bar_height = max_health * cell_h;
+        for (int i = 0; i < max_health; i++)
+        {
+          const float ex = 2.0f;
+          const float ey = interface_texture_h / 2.0f + bar_height / 2.0f - i * cell_h;
+
+          if (i < draw_health)
+          {
+            energy_bar.position.x = ex;
+            energy_bar.position.y = ey;
+            energy_bar.draw();
+          }
+
+          energy_bar_bg.position.x = ex;
+          energy_bar_bg.position.y = ey;
+          energy_bar_bg.draw();
+        }
+      }
+
+      game.dither_fx.disable();
+    }
+
     BeginTextureMode(interface_render_texture);
     {
       ClearBackground(BLANK);
+
+      game.dither_fx.draw_texture(target_source(interface_render_texture));
 #if defined(DEBUG)
       const Color cursor_color = PALETTE_BLUE;
       INPUT.hide_cursor();
@@ -283,7 +396,7 @@ extern "C"
       static float scale     = 1.0f;
       // draw mouse
       if (mouse_moved)
-        scale = Lerp(scale, 2.0f, 0.08f);
+        scale = Lerp(scale, 0.6f, 0.08f);
       else
         scale = Lerp(scale, 0.1f, 0.12f);
 
@@ -571,4 +684,32 @@ std::string_view Game::level_name()
 void Game::skip_ticks(size_t count)
 {
   get().skip_ticks_count += count;
+}
+
+bool Game::on_screen(Rectangle rect)
+{
+  rect                     = inflate(rect, 8);
+  const auto &g            = get();
+  const auto camera_left   = g.camera.target.x - g.camera.offset.x;
+  const auto camera_top    = g.camera.target.y - g.camera.offset.y;
+  const auto camera_right  = camera_left + g.render_texture.value.texture.width;
+  const auto camera_bottom = camera_top + g.render_texture.value.texture.height;
+
+  return rect.x + rect.width >= camera_left && rect.x <= camera_right && rect.y + rect.height >= camera_top &&
+         rect.y <= camera_bottom;
+}
+
+void Game::defer_draw(Entity entity, std::function<void()> &&callback)
+{
+  get().deferred_draws.push_back({ entity, std::move(callback) });
+}
+
+void Game::draw_deferred()
+{
+  for (auto &[entity, callback] : get().deferred_draws)
+  {
+    if (entity_exists(entity))
+      callback();
+  }
+  get().deferred_draws.clear();
 }

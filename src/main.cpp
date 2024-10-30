@@ -82,7 +82,7 @@ void *allocate_game(size_t alignment, size_t size)
 struct Engine
 {
   NRL::RenderTexture game_render_texture{ GAME_WIDTH, GAME_HEIGHT, NRL::RenderTexture::Smooth::No };
-  NRL::RenderTexture interface_render_texture{ GAME_WIDTH, GAME_HEIGHT, NRL::RenderTexture::Smooth::Yes };
+  NRL::RenderTexture interface_render_texture{ GAME_WIDTH, GAME_HEIGHT, NRL::RenderTexture::Smooth::No };
 
   bool game_created = false;
 
@@ -149,8 +149,6 @@ auto update_draw_frame()
     }
 
     const auto render_destination = get_render_destination();
-
-    engine->interface_render_texture.resize(render_destination.width, render_destination.height);
 
     game_library.draw_game(
       loop.frame_progress(), engine->game_render_texture.value, engine->interface_render_texture.value);

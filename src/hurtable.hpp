@@ -21,10 +21,12 @@ struct Hurtable
     return health <= 0;
   }
 
-  inline void hurt(int damage)
+  inline void hurt(int damage, int point_x, int point_y)
   {
-    health     = std::max(0, health - damage);
-    hurt_timer = 1;
+    health      = std::max(0, health - damage);
+    hit_point_x = point_x;
+    hit_point_y = point_y;
+    hurt_timer  = 1;
   }
 
   inline void reset()
@@ -40,12 +42,15 @@ struct Hurtable
   inline void set_max_health(int new_max)
   {
     max_health = new_max;
-    health     = std::min(max_health, health);
+    health     = new_max;
   }
 
-private:
-  int max_health{ 100 };
+  int hit_point_x{ 0 };
+  int hit_point_y{ 0 };
+
+  int max_health{ 10 };
   int health{ max_health };
+private:
   int hurt_timer{ 0 };
 };
 

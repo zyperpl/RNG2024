@@ -11,6 +11,8 @@
 #include "physics.hpp"
 #include "renderers.hpp"
 #include "utils.hpp"
+#include "hurtable.hpp"
+#include "enemy.hpp"
 
 REGISTER_COMPONENT(Player);
 COMPONENT_TEMPLATE(Player);
@@ -24,6 +26,9 @@ void Player::init()
   physics.y       = 80;
   physics.mask    = Mask::center_rect(22, 16);
   physics.gravity = 0.2f;
+
+  auto &hurtable = add_component(entity, Hurtable()).get();
+  hurtable.set_max_health(100);
 
   {
     body                = add_component(entity, SpriteRenderer("assets/tileset.png"));
@@ -184,7 +189,7 @@ void Player::update()
 
     const int bullet_x = physics.x + (dir_y == 0 ? dir_x * 12.0f : 0.0f);
     const int bullet_y = physics.y - 5 - (-dir_y * 12.0f);
-    add_entity(Bullet(bullet_x, bullet_y, dir_y == 0 ? dir_x * 2.0f : 0.0f, dir_y * 2.0f));
+    add_entity(Bullet(entity, bullet_x, bullet_y, dir_y == 0 ? dir_x * 2.0f : 0.0f, dir_y * 2.0f));
 
     Game::add_particles(bullet_x, bullet_y, shoot_particle, 2);
 
@@ -200,6 +205,7 @@ void Player::update()
 void Player::postupdate()
 {
   auto &physics = get_component<Physics>(entity).get();
+  auto &hurtable = get_component<Hurtable>(entity).get();
 
   const int y_bump_offset = (physics.x / 12 % 2 == 0) - std::min(landed / 2.0f, 2.0f) + 1.0f;
   if (body)
@@ -271,5 +277,34 @@ void Player::postupdate()
     if (fabs(physics.v.x) > 1.0f)
       target_size = DEFAULT_SIZE + 2.0f * fabs(physics.v.x);
     light.get().size = lerp(light.get().size, target_size, 0.6f);
+  }
+
+  if (hurtable.process())
+  {
+    physics.v.x /= 2.0f;
+    physics.v.y = -2.0f;
+  }
+}
+
+void Player::collision(Entity other)
+{
+  auto &physics = get_component<Physics>(entity).get();
+  auto &hurtable = get_component<Hurtable>(entity).get();
+
+  auto other_physics_ref = get_component<Physics>(other);
+
+  if (auto enemy_ref = get_component<Enemy>(other))
+  {
+    int hit_point_x { physics.x };
+    int hit_point_y { physics.y };
+
+    if (other_physics_ref)
+    {
+      auto &other_physics = other_physics_ref.get();
+      hit_point_x = other_physics.x;
+      hit_point_y = other_physics.y;
+    }
+
+    hurtable.hurt(1, hit_point_x, hit_point_y);
   }
 }

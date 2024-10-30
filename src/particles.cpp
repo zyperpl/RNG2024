@@ -281,7 +281,7 @@ size_t ParticleSystem::add_sprite(const std::string &filename)
   if (sprite_ids.contains(filename))
     return sprite_ids[filename];
 
-  const size_t index = sprites.size();
+  const size_t index        = sprites.size();
   const char MOCK_SEPARATOR = ':';
   if (filename.find(MOCK_SEPARATOR) != std::string::npos)
   {

@@ -77,7 +77,6 @@ struct Input
 
     update_state(up, KEY_UP);
     update_state(up, KEY_W);
-    update_state(up, KEY_SPACE);
 
     update_state(down, KEY_DOWN);
     update_state(down, KEY_S);
@@ -87,6 +86,7 @@ struct Input
     update_state(special, KEY_F);
 
     update_state(jump, KEY_TWO);
+    update_state(jump, KEY_SPACE);
     update_state(jump, KEY_X);
     update_state(jump, KEY_G);
 
@@ -170,10 +170,10 @@ struct Input
   {
     update_continuous_state(left, KEY_LEFT, KEY_A);
     update_continuous_state(right, KEY_RIGHT, KEY_D);
-    update_continuous_state(up, KEY_UP, KEY_W, KEY_SPACE);
+    update_continuous_state(up, KEY_UP, KEY_W);
     update_continuous_state(down, KEY_DOWN, KEY_S);
     update_continuous_state(special, KEY_ONE, KEY_Z, KEY_F);
-    update_continuous_state(jump, KEY_TWO, KEY_X, KEY_G);
+    update_continuous_state(jump, KEY_TWO, KEY_X, KEY_G, KEY_SPACE);
     update_continuous_state(shoot, KEY_THREE, KEY_C, KEY_H);
     update_continuous_state(mute, KEY_M);
 

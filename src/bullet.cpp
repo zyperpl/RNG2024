@@ -18,7 +18,7 @@ void Bullet::init()
   physics.y     = start_y;
   physics.v     = initial_v;
   physics.solid = false;
-  physics.mask  = Mask::center_rect(8, 8);
+  physics.mask  = Mask::center_rect(8, 6);
 
   auto &renderer = add_component(entity, SpriteRenderer("assets/tileset.png")).get();
   auto &sprite   = renderer.sprite_interpolated.sprite;
@@ -78,6 +78,9 @@ void Bullet::postupdate()
 
 void Bullet::collision(Entity other)
 {
+  if (other == owner)
+    return;
+
   auto other_physics_ref = get_component<Physics>(other);
   if (!other_physics_ref)
     return;
@@ -93,7 +96,7 @@ void Bullet::collision(Entity other)
   if (auto hurtable = get_component<Hurtable>(other); hurtable)
   {
     auto &hurtable_ref = hurtable.get();
-    hurtable_ref.hurt(60);
+    hurtable_ref.hurt(1, physics.x, physics.y);
 
     other_physics.v.y = -2.0f;
     Game::add_particles(physics.x, physics.y, trail_particle, 4);
