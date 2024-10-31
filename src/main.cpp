@@ -230,6 +230,7 @@ auto update_draw_frame()
 auto main() -> int
 {
 #if defined(DEBUG)
+  //generate_entity("Bird", "bird", { .has_particles = true, .has_preupdate = true, .has_sprite_renderer = true, .has_physics = true, .has_postupdate_update_position = true, .is_level_entity = true });
 #endif
 
   InitWindow(GAME_WIDTH * 4, GAME_HEIGHT * 4, GAME_TITLE);

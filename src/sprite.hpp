@@ -110,6 +110,11 @@ public:
     tag                     = default_tag;
   }
 
+  inline void add_tag(const std::string &tag_name, const AnimationTag &tag)
+  {
+    tags[tag_name] = tag;
+  }
+
 protected:
   [[nodiscard]] bool should_advance_frame();
 

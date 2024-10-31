@@ -67,6 +67,7 @@ set(GAME_SOURCES
   sound.cpp
   interactable.cpp
   terminal.cpp
+  bird.cpp
 )
 
 set(GAME_HEADERS
@@ -89,6 +90,7 @@ set(GAME_HEADERS
   utils.hpp
   interactable.hpp
   terminal.hpp
+  bird.hpp
 )
 
 if (EMSCRIPTEN)
