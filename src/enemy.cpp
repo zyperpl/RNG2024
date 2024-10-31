@@ -120,6 +120,8 @@ void Enemy::update()
   if (players.empty())
     return;
 
+  auto &hurtable = get_component<Hurtable>(entity).get();
+
   const bool colliding_left  = physics.is_colliding_with_solid(-2, 0);
   const bool colliding_right = physics.is_colliding_with_solid(2, 0);
   const bool colliding_side  = colliding_left || colliding_right;
@@ -149,10 +151,15 @@ void Enemy::update()
 
     if (target.x != 0 && target.y != 0)
     {
+      float speed = 0.5f;
+
+      if (hurtable.is_invincible())
+        speed *= 0.5f;
+
       if (target.x < physics.x)
-        physics.v.x = lerp(physics.v.x, -0.5f, 0.1f);
+        physics.v.x = lerp(physics.v.x, -speed, 0.1f);
       else if (target.x > physics.x)
-        physics.v.x = lerp(physics.v.x, 0.5f, 0.1f);
+        physics.v.x = lerp(physics.v.x, speed, 0.1f);
     }
   }
   else if (type == Type::Bat)
@@ -173,17 +180,6 @@ void Enemy::update()
       if (hurted)
         vis_size *= 2.0f;
       const Rectangle visibility_rect{ position.x - vis_size / 2.0f, position.y, vis_size, vis_size };
-#if defined(DEBUG) && defined(DEBUG_ENEMY)
-      Game::defer_draw(entity,
-                       [=]
-                       {
-                         DrawRectangleLines(static_cast<int>(visibility_rect.x),
-                                            static_cast<int>(visibility_rect.y),
-                                            static_cast<int>(visibility_rect.width),
-                                            static_cast<int>(visibility_rect.height),
-                                            PALETTE_YELLOW);
-                       });
-#endif
       if (CheckCollisionPointRec(player_position, visibility_rect))
       {
         const float player_dist = Vector2Distance(position, player_position);

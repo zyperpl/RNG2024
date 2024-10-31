@@ -6,6 +6,7 @@
 struct GenerateEntityParams
 {
   bool is_level_entity{ false };
+  bool has_init{ true };
   bool has_physics{ false };
   bool has_sprite_renderer{ false };
   bool has_tile_renderer{ false };

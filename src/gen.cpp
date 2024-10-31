@@ -46,7 +46,8 @@ void generate_entity(const std::string &component_name, const std::string &file_
 
     file << "\n";
 
-    file << "  void init();\n";
+    if (params.has_init)
+      file << "  void init();\n";
     if (params.has_preupdate)
       file << "  void preupdate();\n";
     if (params.has_update)
@@ -119,55 +120,57 @@ void generate_entity(const std::string &component_name, const std::string &file_
       file << "\n";
     }
 
-    file << "void " << component_name << "::init()\n";
-    file << "{\n";
-    if (params.has_physics)
+    if (params.has_init)
     {
-      file << "  auto &physics = add_component(entity, Physics()).get();\n";
-      file << "  physics.mask = Mask::center_rect(8, 8);\n";
-      if (params.is_level_entity)
+      file << "void " << component_name << "::init()\n";
+      file << "{\n";
+      if (params.has_physics)
       {
-        file << "  physics.x = start_x;\n";
-        file << "  physics.y = start_y;\n";
+        file << "  auto &physics = add_component(entity, Physics()).get();\n";
+        file << "  physics.mask = Mask::center_rect(8, 8);\n";
+        if (params.is_level_entity)
+        {
+          file << "  physics.x = start_x;\n";
+          file << "  physics.y = start_y;\n";
+        }
+        file << "\n";
       }
+
+      if (params.has_sprite_renderer)
+      {
+        file << "  auto &renderer = add_component(entity, SpriteRenderer()).get();\n";
+        if (params.is_level_entity)
+        {
+          file << "  renderer.set_position(start_x, start_y);\n";
+        }
+        file << "\n";
+      }
+
+      if (params.has_tile_renderer)
+      {
+        if (params.is_level_entity)
+        {
+          file << "  add_component(entity, TileRenderer(tileset, tile.position, tile.size, "
+                  "tile.source_position)).get();\n";
+        }
+        else
+        {
+          file << "  auto &renderer = add_component(entity, TileRenderer()).get();\n";
+        }
+        file << "\n";
+      }
+
+      if (params.has_particles)
+        file << "  particle = Game::particle_builder().build();\n\n";
+
+      if (params.has_sounds)
+        file << "  //sound = GameSound();\n\n";
+
+      file << "\n";
+
+      file << "}\n";
       file << "\n";
     }
-
-    if (params.has_sprite_renderer)
-    {
-      file << "  auto &renderer = add_component(entity, SpriteRenderer()).get();\n";
-      if (params.is_level_entity)
-      {
-        file << "  renderer.set_position(start_x, start_y);\n";
-      }
-      file << "\n";
-    }
-
-    if (params.has_tile_renderer)
-    {
-      if (params.is_level_entity)
-      {
-        file << "  add_component(entity, TileRenderer(tileset, tile.position, tile.size, "
-                "tile.source_position)).get();\n";
-      }
-      else
-      {
-        file << "  auto &renderer = add_component(entity, TileRenderer()).get();\n";
-      }
-      file << "\n";
-    }
-
-    if (params.has_particles)
-      file << "  particle = Game::particle_builder().build();\n\n";
-
-    if (params.has_sounds)
-      file << "  //sound = GameSound();\n\n";
-
-    file << "\n";
-
-    file << "}\n";
-
-    file << "\n";
 
     if (params.has_preupdate)
     {

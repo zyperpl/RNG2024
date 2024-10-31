@@ -154,10 +154,10 @@ extern "C"
           light.y - 20 - light.intensity * 8 - light.size * 8 > camera.target.y + camera.offset.y)
         continue;
 
-      if (light.size < 0.1f)
+      if (light.size < 0.001f)
         continue;
 
-      if (light.intensity < 0.1f)
+      if (light.intensity < 0.01f)
         continue;
 
       light_pos[light_idx].x     = light.x;
@@ -223,37 +223,35 @@ extern "C"
     // draw
     if (game.dither_fx.enable())
     {
+      auto &shader        = game.dither_fx.shader.shader;
+      const auto res_vec2 = Vector2{ static_cast<float>(game_render_texture.texture.width),
+                                     static_cast<float>(game_render_texture.texture.height) };
+      SetShaderValue(shader, GetShaderLocation(shader, "resolution"), &res_vec2, SHADER_UNIFORM_VEC2);
+
+      const auto lightPos_loc = GetShaderLocation(shader, "lightPos");
+      assert(lightPos_loc != -1);
+      SetShaderValueV(shader, lightPos_loc, &light_pos, SHADER_UNIFORM_VEC2, MAX_LIGHTS);
+
+      const auto cameraPos_loc = GetShaderLocation(shader, "cameraPos");
+      assert(cameraPos_loc != -1);
+      Vector2 camera_pos = { camera.target.x - camera.offset.x, camera.target.y - camera.offset.y };
+      SetShaderValue(shader, cameraPos_loc, &camera_pos, SHADER_UNIFORM_VEC2);
+
+      const auto lightSize_loc = GetShaderLocation(shader, "lightSize");
+      assert(lightSize_loc != -1);
+      SetShaderValueV(shader, lightSize_loc, &light_size, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
+
+      const auto lightIntensity_loc = GetShaderLocation(shader, "lightIntensity");
+      assert(lightIntensity_loc != -1);
+      SetShaderValueV(shader, lightIntensity_loc, &light_intensity, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
+
+      SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), tileset);
+      SetShaderValueTexture(shader, GetShaderLocation(shader, "texture1"), tileset_normal);
+      SetShaderValueTexture(shader, GetShaderLocation(shader, "texture2"), game.palette_texture);
+
       BeginMode2D(camera);
       {
-        auto &shader        = game.dither_fx.shader.shader;
-        const auto res_vec2 = Vector2{ static_cast<float>(game_render_texture.texture.width),
-                                       static_cast<float>(game_render_texture.texture.height) };
-        SetShaderValue(shader, GetShaderLocation(shader, "resolution"), &res_vec2, SHADER_UNIFORM_VEC2);
-
-        const auto lightPos_loc = GetShaderLocation(shader, "lightPos");
-        assert(lightPos_loc != -1);
-        SetShaderValueV(shader, lightPos_loc, &light_pos, SHADER_UNIFORM_VEC2, MAX_LIGHTS);
-
-        const auto cameraPos_loc = GetShaderLocation(shader, "cameraPos");
-        assert(cameraPos_loc != -1);
-        Vector2 camera_pos = { camera.target.x - camera.offset.x, camera.target.y - camera.offset.y };
-        SetShaderValue(shader, cameraPos_loc, &camera_pos, SHADER_UNIFORM_VEC2);
-
-        const auto lightSize_loc = GetShaderLocation(shader, "lightSize");
-        assert(lightSize_loc != -1);
-        SetShaderValueV(shader, lightSize_loc, &light_size, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
-
-        const auto lightIntensity_loc = GetShaderLocation(shader, "lightIntensity");
-        assert(lightIntensity_loc != -1);
-        SetShaderValueV(shader, lightIntensity_loc, &light_intensity, SHADER_UNIFORM_FLOAT, MAX_LIGHTS);
-
-        SetShaderValueTexture(shader, GetShaderLocation(shader, "texture0"), tileset);
-        SetShaderValueTexture(shader, GetShaderLocation(shader, "texture1"), tileset_normal);
-        SetShaderValueTexture(shader, GetShaderLocation(shader, "texture2"), game.palette_texture);
-        ClearBackground(PALETTE_WHITE);
-
-        manager.call_render(0);
-        manager.call_render(NEG_INF_DEPTH);
+        manager.call_render();
       }
       EndMode2D();
 
@@ -262,6 +260,21 @@ extern "C"
 
     BeginTextureMode(game_render_texture);
     {
+      ClearBackground(PALETTE_BLUE);
+
+      const auto w           = game_render_texture.texture.width;
+      static float cloud_x   = 0.0f;
+      cloud_x                = fmod(Game::tick() * 0.5f - camera.target.x, w);
+      const auto cloud_color = PALETTE_WHITE;
+      for (int i = -1; i < 2; i++)
+      {
+        DrawCircle(cloud_x + i * w, 120, 60, cloud_color);
+        DrawCircle(cloud_x + 80 + i * w, 120 - 20, 60, cloud_color);
+        DrawCircle(cloud_x + 80 + i * w, 120 + 60, 120, cloud_color);
+        DrawCircle(cloud_x + 240 + i * w, 120 + 60, 100, cloud_color);
+        DrawCircle(cloud_x + 160 + i * w, 120 + 20, 60, cloud_color);
+      }
+
       game.dither_fx.draw_texture(target_source(game_render_texture));
 
       BeginMode2D(camera);
@@ -272,9 +285,14 @@ extern "C"
 
 #if defined(DEBUG)
       DrawTexture(game.palette_texture, 2, 2, WHITE);
-      DrawText(TextFormat("Lights: %zu", light_idx), 2, 12 + 1, 10, PALETTE_BLACK);
-      DrawText(TextFormat("Lights: %zu", light_idx), 2 + 1, 12, 10, PALETTE_GRAY);
-      DrawText(TextFormat("Lights: %zu", light_idx), 2, 12, 10, PALETTE_YELLOW);
+      DrawTextEx(game.font,
+                 TextFormat("Lights: %zu", light_idx),
+                 { 2, 12 + 1 },
+                 game.font_size,
+                 game.font_spacing,
+                 PALETTE_BLACK);
+      DrawTextEx(
+        game.font, TextFormat("Lights: %zu", light_idx), { 2, 12 }, game.font_size, game.font_spacing, PALETTE_YELLOW);
 #endif
     }
     EndTextureMode();
@@ -287,10 +305,22 @@ extern "C"
 
     clear_lights();
     light_idx                  = 0;
-    light_pos[light_idx].x     = interface_texture_w / 4.0f;
+    light_pos[light_idx].x     = 20.0f;
     light_pos[light_idx].y     = interface_texture_h / 2.0f;
-    light_size[light_idx]      = 128.0f;
-    light_intensity[light_idx] = 1.2f;
+    light_size[light_idx]      = 4.0f;
+    light_intensity[light_idx] = 1.0f;
+
+    light_idx++;
+    light_pos[light_idx].x     = -20.0f;
+    light_pos[light_idx].y     = interface_texture_h - 40.0f;
+    light_size[light_idx]      = 1.0f;
+    light_intensity[light_idx] = 1.0f;
+
+    light_idx++;
+    light_pos[light_idx].x     = interface_texture_w / 2.0f;
+    light_pos[light_idx].y     = interface_texture_h / 2.0f;
+    light_size[light_idx]      = 600.0f;
+    light_intensity[light_idx] = 0.8f;
 
     if (game.dither_fx.enable())
     {
@@ -343,8 +373,8 @@ extern "C"
         const auto &player         = players.front();
         const auto player_hurtable = get_component<Hurtable>(player.entity).get();
 
-        const int health     = player_hurtable.health / 4;
-        const int max_health = player_hurtable.max_health / 4;
+        const int health     = player_hurtable.health;
+        const int max_health = player_hurtable.max_health;
 
         static int draw_health = health;
 
@@ -353,12 +383,21 @@ extern "C"
         else
           draw_health = Lerp(draw_health, health, 0.1f);
 
-        const int cell_h = energy_bar.get_height();
+        const int cell_h     = energy_bar.get_height();
         const int bar_height = max_health * cell_h;
+        static int xoffset          = 0;
+        int yoffset = (health <= max_health * 0.35) ? (Game::tick() / 4 % 2) : 0;
+        if (auto player_hurtable_ref = get_component<Hurtable>(player.entity))
+        {
+          if (player_hurtable_ref.get().hurt_frames_ago() < 16)
+            xoffset = 2;
+        }
+        xoffset = Lerp(xoffset, 0, 0.1f);
+
         for (int i = 0; i < max_health; i++)
         {
-          const float ex = 2.0f;
-          const float ey = interface_texture_h / 2.0f + bar_height / 2.0f - i * cell_h;
+          const float ex = 2.0f + xoffset;
+          const float ey = interface_texture_h / 2.0f + yoffset + bar_height / 2.0f - i * cell_h;
 
           if (i < draw_health)
           {
@@ -373,6 +412,26 @@ extern "C"
         }
       }
 
+      if (game.has_messages())
+      {
+        const auto canvas_w = game.render_texture.value.texture.width;
+        const auto canvas_h = game.render_texture.value.texture.height;
+
+        const int border = 20;
+        int dialog_w     = canvas_w - border * 4;
+        int dialog_h     = 40;
+        int dialog_x     = canvas_w / 2 - dialog_w / 2;
+        int dialog_y     = canvas_h - 40 - border;
+
+        const Rectangle dialog_rect{ static_cast<float>(dialog_x),
+                                     static_cast<float>(dialog_y),
+                                     static_cast<float>(dialog_w),
+                                     static_cast<float>(dialog_h) };
+
+        NPatchInfo npatchinfo{ Rectangle{ 0.0f, 104.0f, 24.0f, 24.0f }, 4, 4, 4, 4, NPATCH_NINE_PATCH };
+        DrawTextureNPatch(tileset, npatchinfo, dialog_rect, Vector2{ 0, 0 }, 0.0f, WHITE);
+      }
+
       game.dither_fx.disable();
     }
 
@@ -381,6 +440,10 @@ extern "C"
       ClearBackground(BLANK);
 
       game.dither_fx.draw_texture(target_source(interface_render_texture));
+
+      if (game.has_messages())
+        game.draw_messages();
+
 #if defined(DEBUG)
       const Color cursor_color = PALETTE_BLUE;
       INPUT.hide_cursor();
@@ -388,11 +451,11 @@ extern "C"
       [[maybe_unused]] auto mouse_position = round(INPUT.interface_mouse());
 
       static Vector2 previous_mouse_position = mouse_position;
-      static size_t mouse_moved_tick         = Game::get_ticks();
+      static size_t mouse_moved_tick         = Game::tick();
       if (!Vector2Equals(previous_mouse_position, mouse_position))
-        mouse_moved_tick = Game::get_ticks();
+        mouse_moved_tick = Game::tick();
 
-      const bool mouse_moved = Game::get_ticks() - mouse_moved_tick < 60 * 2;
+      const bool mouse_moved = Game::tick() - mouse_moved_tick < 60 * 2;
       static float scale     = 1.0f;
       // draw mouse
       if (mouse_moved)
@@ -478,13 +541,13 @@ extern "C"
       if (IsKeyDown(KEY_LEFT_ALT))
       {
         if (INPUT.left)
-          player_x -= level_width / 12;
+          player_x -= level_width / 32;
         if (INPUT.right)
-          player_x += level_width / 12;
+          player_x += level_width / 32;
         if (INPUT.up)
-          player_y -= level_height / 12;
+          player_y -= level_height / 24;
         if (INPUT.down)
-          player_y += level_height / 12;
+          player_y += level_height / 24;
       }
 #endif
     }
@@ -506,25 +569,32 @@ extern "C"
       return;
     }
 
-    for (auto &component_id : manager.preupdate_components)
+    if (!game->has_messages())
     {
-      auto &container = manager.component_containers[component_id];
-      if (container.preupdate)
-        container.preupdate();
-    }
+      for (auto &component_id : manager.preupdate_components)
+      {
+        auto &container = manager.component_containers[component_id];
+        if (container.preupdate)
+          container.preupdate();
+      }
 
-    for (auto &component_id : manager.update_components)
-    {
-      auto &container = manager.component_containers[component_id];
-      if (container.update)
-        container.update();
-    }
+      for (auto &component_id : manager.update_components)
+      {
+        auto &container = manager.component_containers[component_id];
+        if (container.update)
+          container.update();
+      }
 
-    for (auto &component_id : manager.postupdate_components)
+      for (auto &component_id : manager.postupdate_components)
+      {
+        auto &container = manager.component_containers[component_id];
+        if (container.postupdate)
+          container.postupdate();
+      }
+    }
+    else
     {
-      auto &container = manager.component_containers[component_id];
-      if (container.postupdate)
-        container.postupdate();
+      game->update_messages();
     }
 
     manager.call_init();
@@ -545,6 +615,32 @@ Game::Game()
   PlayMusicStream(music);
 
   generate_palette_texture();
+
+  if (!IsFontValid(font))
+    UnloadFont(font);
+
+  font            = LoadFontEx("assets/KubastaFixed.ttf", font_size, nullptr, 0);
+  auto font_image = LoadImageFromTexture(font.texture);
+  UnloadTexture(font.texture);
+
+  for (int y = 0; y < font_image.height; y++)
+  {
+    for (int x = 0; x < font_image.width; x++)
+    {
+      Color pixel = GetImageColor(font_image, x, y);
+      if (pixel.a != 0 && pixel.a != 255)
+      {
+        pixel.a = pixel.a > 192 ? 255 : 0;
+        pixel.r = 255;
+        pixel.g = 255;
+        pixel.b = 255;
+        ImageDrawPixel(&font_image, x, y, pixel);
+      }
+    }
+  }
+  font.texture = LoadTextureFromImage(font_image);
+
+  assert(IsFontValid(font) && "Font is not valid");
 }
 
 double Game::frame_progress()
@@ -586,9 +682,14 @@ void Game::update_timers()
   std::erase_if(timers, [](const Timer &timer) { return timer.frames <= 0; });
 }
 
-size_t Game::get_ticks()
+size_t Game::tick()
 {
   return get().ticks;
+}
+
+size_t Game::frame()
+{
+  return get().frames;
 }
 
 void Game::generate_palette_texture()
@@ -712,4 +813,123 @@ void Game::draw_deferred()
       callback();
   }
   get().deferred_draws.clear();
+}
+
+void Game::queue_message(std::string message, Color color)
+{
+  get().messages.push({ std::move(message), color });
+}
+
+void Game::update_messages()
+{
+  if (messages.empty())
+    return;
+
+  static int max_delay         = 4;
+  static bool skipping_message = false;
+  const auto action_pressed    = INPUT.jump.pressed() || INPUT.shoot.pressed() || INPUT.special.pressed();
+  if (!message_ready && action_pressed)
+  {
+    skipping_message = true;
+  }
+
+  if (!message_ready)
+  {
+    if (drawn_message.first != messages.front().first)
+    {
+      static int delay = 0;
+      if (delay == 0)
+      {
+        delay                = max_delay;
+        drawn_message.first  = messages.front().first.substr(0, drawn_message.first.size() + 1);
+        drawn_message.second = messages.front().second;
+      }
+      else
+        delay -= 1;
+
+      if (skipping_message)
+        delay = 0;
+    }
+    else
+    {
+      message_ready = true;
+      drawn_message = messages.front();
+    }
+  }
+  else
+  {
+    if (action_pressed)
+    {
+      skipping_message = false;
+      messages.pop();
+      message_ready = false;
+      drawn_message.first.clear();
+      drawn_message.second = PALETTE_WHITE;
+
+      // prepare next message immediately
+      if (!messages.empty() && !messages.front().first.empty())
+      {
+        drawn_message.first  = messages.front().first.at(0);
+        drawn_message.second = messages.front().second;
+      }
+    }
+  }
+}
+
+void Game::draw_messages()
+{
+  if (drawn_message.first.empty())
+    return;
+
+  const auto canvas_w = render_texture.value.texture.width;
+  const auto canvas_h = render_texture.value.texture.height;
+
+  const int border   = 20;
+  const int dialog_w = canvas_w - border * 4;
+  const int dialog_h = 40;
+  const int dialog_x = canvas_w / 2 - dialog_w / 2;
+  const int dialog_y = canvas_h - 40 - border;
+
+  const auto &message = drawn_message.first;
+  const auto &color   = drawn_message.second;
+
+  int tx = 0;
+  int ty = 0;
+
+  for (const auto &c : message)
+  {
+    auto txt         = TextFormat("%c", c);
+    auto letter_size = MeasureTextEx(font, txt, font_size, font_spacing);
+
+    if (*txt == '\0' || letter_size.x <= 0)
+      continue;
+
+    if (c == ' ')
+    {
+      // hack
+      if (tx + 40 > dialog_x + dialog_w - 60)
+      {
+        tx = 0;
+        ty += font_size;
+        continue;
+      }
+    }
+
+    DrawTextEx(font, txt, { dialog_x + 5.0f + tx, dialog_y + 1.0f + ty }, font_size, font_spacing, PALETTE_GRAY);
+    DrawTextEx(font, txt, { dialog_x + 5.0f + tx, dialog_y + 0.0f + ty }, font_size, font_spacing, color);
+
+    tx += letter_size.x + font_spacing;
+  }
+
+  if (message_ready)
+  {
+    const std::string btn_txt = messages.size() > 1 ? ">" : "x";
+    if (ticks / 10 % 2 == 0)
+      DrawTextEx(font,
+                 btn_txt.c_str(),
+                 { dialog_x + dialog_w - 5.0f - 4.0f * btn_txt.size(), dialog_y + dialog_h - 16.0f },
+                 font_size,
+                 font_spacing,
+                 PALETTE_YELLOW);
+  }
 }

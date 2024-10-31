@@ -39,6 +39,10 @@ private:
   ComponentReference<Light> light;
   Particle shoot_particle;
   Particle jump_particle;
+
+  bool can_interact{ false };
+
+  friend struct Game;
 };
 
 EXTERN_COMPONENT_TEMPLATE(Player);

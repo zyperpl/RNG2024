@@ -2,10 +2,12 @@ Game made by Kacper "Zyper" Zybała 2024
 MIT License
 
 Additional assets:
-Shader adapted, transformed and modified based on the shaders by:
+Shader adapted, transformed and modified, based on the shaders by:
  - Flyguy https://www.shadertoy.com/view/MtjGRd  CC BY-NC-SA 3.0
  - Tech_ https://www.shadertoy.com/view/7sfXDn  CC BY-NC-SA 3.0
 https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en
+
+Font based on the font by: Kai Kubasta https://www.dafont.com/kubasta.font CC0 License
 
 Tools and libraries:
 - raylib library by 2013-2024 Ramon Santamaria (@raysan5) zlib License https://www.raylib.com/

@@ -22,7 +22,7 @@ struct Bullet
   void collision(Entity other);
 
 private:
-  Entity owner { INVALID_ENTITY };
+  Entity owner{ INVALID_ENTITY };
   Particle trail_particle;
   Particle hit_particle;
   GameSound sound;

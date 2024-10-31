@@ -65,6 +65,8 @@ set(GAME_SOURCES
   player.cpp
   renderers.cpp
   sound.cpp
+  interactable.cpp
+  terminal.cpp
 )
 
 set(GAME_HEADERS
@@ -85,6 +87,8 @@ set(GAME_HEADERS
   renderers.hpp
   sound.hpp
   utils.hpp
+  interactable.hpp
+  terminal.hpp
 )
 
 if (EMSCRIPTEN)

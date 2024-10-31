@@ -8,6 +8,7 @@ struct Light
 {
   COMPONENT(Light);
   Light(const Level::Entity &entity);
+  Light(int, int);
 
   void init();
 

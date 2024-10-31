@@ -14,10 +14,9 @@ struct Hurtable
 
   inline bool process()
   {
-    if (hurt_timer <= 0)
+    if (hurt_timer-- <= 0)
       return false;
 
-    hurt_timer = std::max(0, hurt_timer - 1);
     return true;
   }
 
@@ -31,13 +30,18 @@ struct Hurtable
     if (invincibility_frames > 0)
       return false;
 
-    health      = std::max(0, health - damage);
-    hit_point_x = point_x;
-    hit_point_y = point_y;
-    hurt_timer  = 1;
+    health               = std::max(0, health - damage);
+    hit_point_x          = point_x;
+    hit_point_y          = point_y;
+    hurt_timer           = 1;
     invincibility_frames = invincibility_frames_max;
 
     return true;
+  }
+
+  inline int hurt_frames_ago() const
+  {
+    return -(hurt_timer - 1);
   }
 
   inline void reset()
@@ -71,10 +75,11 @@ struct Hurtable
 
   int max_health{ 10 };
   int health{ max_health };
+
 private:
   int hurt_timer{ 0 };
   int invincibility_frames{ 0 };
-  int invincibility_frames_max { 120 };
+  int invincibility_frames_max{ 120 };
 };
 
 EXTERN_COMPONENT_TEMPLATE(Hurtable);

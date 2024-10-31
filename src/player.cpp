@@ -6,6 +6,7 @@
 #include "game.hpp"
 #include "hurtable.hpp"
 #include "input.hpp"
+#include "interactable.hpp"
 #include "level.hpp"
 #include "light.hpp"
 #include "manager.hpp"
@@ -135,6 +136,19 @@ void Player::update()
   auto &physics = get_component<Physics>(entity).get();
   auto &input   = Input::get();
 
+  can_interact                  = false;
+  const Rectangle interact_rect = inflate(physics.mask.rect(physics.x, physics.y), 1.0f);
+  for (auto &interactable : get_components<Interactable>())
+  {
+    if (interactable.can_interact(interact_rect))
+    {
+      can_interact = true;
+
+      if (input.shoot.pressed())
+        interactable.interact();
+    }
+  }
+
   const auto speed = landed <= 0 ? 1.4f : 1.2f;
   const auto jump  = 3.6f;
   if (input.left)
@@ -155,7 +169,15 @@ void Player::update()
   if (input.up)
     dir_y = -1;
   else
-    dir_y = 0;
+  {
+    if (input.down)
+    {
+      dir_y  = 1;
+      landed = 2;
+    }
+    else
+      dir_y = 0;
+  }
 
   if (input.jump.pressed())
     jump_buffer = JUMP_BUFFER_MAX;
@@ -179,7 +201,7 @@ void Player::update()
   if (!input.jump && physics.v.y < -1.0f)
     physics.v.y *= 0.9f;
 
-  if (input.shoot && shoot_cooldown <= 0)
+  if (!can_interact && input.shoot && shoot_cooldown <= 0 && dir_y != 1)
   {
     shoot_cooldown = SHOOT_COOLDOWN_MAX;
 
@@ -214,11 +236,11 @@ void Player::postupdate()
     body.get().set_position(physics.x, physics.y - y_bump_offset);
     if (dir_x != 0)
     {
-      auto &spr = body.get().sprite_interpolated.sprite;
+      auto &spr   = body.get().sprite_interpolated.sprite;
       spr.scale.x = lerp(spr.scale.x, dir_x, 0.8f);
     }
 
-    auto &spr_inter = body.get().sprite_interpolated;
+    auto &spr_inter   = body.get().sprite_interpolated;
     spr_inter.visible = hurtable.is_invincible() ? (Game::tick() / 3 % 2 == 0) : true;
   }
 

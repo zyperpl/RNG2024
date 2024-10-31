@@ -16,6 +16,12 @@ Light::Light(const Level::Entity &entity)
   Level::read_field(entity.fields, "Intensity", intensity);
 }
 
+Light::Light(int x, int y)
+{
+  start_x = x;
+  start_y = y;
+}
+
 void Light::init()
 {
   x = start_x;

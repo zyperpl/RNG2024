@@ -44,10 +44,12 @@ struct Game final
   [[nodiscard]] static int64_t level_width();
   [[nodiscard]] static int64_t level_height();
   [[nodiscard]] static std::string_view level_name();
-  [[nodiscard]] static size_t get_ticks();
+  [[nodiscard]] static size_t tick();
+  [[nodiscard]] static size_t frame();
   static void skip_ticks(size_t count);
   [[nodiscard]] static bool on_screen(Rectangle rect);
   static void defer_draw(Entity entity, std::function<void()> &&callback);
+  static void queue_message(std::string message, Color color = PALETTE_WHITE);
 
 private:
   [[nodiscard]] static Game &get();
@@ -82,9 +84,22 @@ private:
   ComponentReference<ParticleSystem> particle_system;
   Music music;
   bool mute{ true };
+  Font font;
+  float font_size{ 18 };
+  float font_spacing{ 1 };
 
   void draw_deferred();
   std::vector<std::pair<Entity, std::function<void()>>> deferred_draws;
+
+  void update_messages();
+  void draw_messages();
+  [[nodiscard]] bool has_messages() const
+  {
+    return !messages.empty();
+  }
+  std::queue<std::pair<std::string, Color>> messages;
+  std::pair<std::string, Color> drawn_message;
+  bool message_ready{ false };
 
   friend void G_create_game();
   friend void G_reload_game();
