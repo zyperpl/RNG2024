@@ -12,7 +12,8 @@ struct Enemy
   enum class Type
   {
     Slime,
-    Bat
+    Bat,
+    FallSlime
   };
 
   COMPONENT(Enemy);

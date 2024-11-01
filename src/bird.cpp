@@ -49,7 +49,7 @@ void Bird::init()
                .sprite("assets/tileset.png:bit")
                .build();
 
-  visible_timer_max = randi(180, 300);
+  visible_timer_max = randi(60, 240);
 }
 
 void Bird::preupdate()

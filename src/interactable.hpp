@@ -4,9 +4,9 @@
 #include <variant>
 
 #include "component.hpp"
+#include "game.hpp"
 #include "level_definitions.hpp"
 #include "manager.hpp"
-#include "game.hpp"
 
 #include <raylib.h>
 

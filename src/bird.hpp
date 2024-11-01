@@ -1,9 +1,9 @@
 #pragma once
 
-#include "manager.hpp"
 #include "component.hpp"
-#include "particles.hpp"
 #include "level.hpp"
+#include "manager.hpp"
+#include "particles.hpp"
 
 struct Bird
 {
@@ -16,11 +16,11 @@ struct Bird
 
 private:
   Particle particle;
-  int start_x { 0 };
-  int start_y { 0 };
+  int start_x{ 0 };
+  int start_y{ 0 };
 
-  int visible_timer { 0 };
-  int visible_timer_max { 60 };
+  int visible_timer{ 0 };
+  int visible_timer_max{ 60 };
 };
 
 EXTERN_COMPONENT_TEMPLATE(Bird);

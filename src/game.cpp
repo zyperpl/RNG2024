@@ -385,8 +385,8 @@ extern "C"
 
         const int cell_h     = energy_bar.get_height();
         const int bar_height = max_health * cell_h;
-        static int xoffset          = 0;
-        int yoffset = (health <= max_health * 0.35) ? (Game::tick() / 4 % 2) : 0;
+        static int xoffset   = 0;
+        int yoffset          = (health <= max_health * 0.35) ? (Game::tick() / 4 % 2) : 0;
         if (auto player_hurtable_ref = get_component<Hurtable>(player.entity))
         {
           if (player_hurtable_ref.get().hurt_frames_ago() < 16)

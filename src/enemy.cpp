@@ -48,7 +48,7 @@ void Enemy::init()
       physics.gravity = 0.1f;
 
       hurtable.set_max_health(3);
-      hurtable.set_max_invincibility(30);
+      hurtable.set_max_invincibility(20);
 
       sprite.set_frame_width(16);
       sprite.set_frame_height(16);
@@ -62,7 +62,7 @@ void Enemy::init()
       physics.gravity = 0.01f;
 
       hurtable.set_max_health(2);
-      hurtable.set_max_invincibility(60);
+      hurtable.set_max_invincibility(30);
 
       sprite.set_frame_width(16);
       sprite.set_frame_height(16);
@@ -70,6 +70,21 @@ void Enemy::init()
       sprite.source_offset.y = 192 - 16;
       sprite.set_frame_durations({ 200, 200 });
       sprite.set_frame_count(2);
+      break;
+    case Type::FallSlime:
+      physics.gravity = 0.0f;
+
+      hurtable.set_max_health(3);
+      hurtable.set_max_invincibility(30);
+
+      sprite.set_frame_width(16);
+      sprite.set_frame_height(16);
+      sprite.source_offset.x = 16 * 2;
+      sprite.source_offset.y = 192;
+      sprite.set_frame_durations({ 200, 100 });
+      sprite.set_frame_count(2);
+      sprite.scale.y = -1.0f;
+
       break;
   }
 
@@ -121,6 +136,8 @@ void Enemy::update()
     return;
 
   auto &hurtable = get_component<Hurtable>(entity).get();
+  auto &renderer = get_component<SpriteRenderer>(entity).get();
+  auto &sprite   = renderer.sprite_interpolated.sprite;
 
   const bool colliding_left  = physics.is_colliding_with_solid(-2, 0);
   const bool colliding_right = physics.is_colliding_with_solid(2, 0);
@@ -220,6 +237,47 @@ void Enemy::update()
         physics.v.y = lerp(physics.v.y, 1.0f, 0.1f);
     }
   }
+  else if (type == Type::FallSlime)
+  {
+    float vis_size = 35.0f;
+    if (hurted)
+      vis_size *= 2.0f;
+    const Rectangle visibility_rect{ position.x - vis_size / 2.0f, position.y, vis_size, 200.0f };
+
+    if (hurted || CheckCollisionPointRec(player_position, visibility_rect))
+    {
+      physics.gravity = 0.1f;
+      sprite.scale.y  = 1.0f;
+    }
+
+    if (colliding_up)
+      physics.v.x = 0.0f;
+
+    if ((!colliding_up && (colliding_down || colliding_side)) || physics.v.y < 0.0f)
+    {
+      if (fabs(physics.v.x) < 0.5f)
+        target = player_position;
+
+      if (target.x != 0 && target.y != 0)
+      {
+        float speed = 0.5f;
+
+        if (hurtable.is_invincible())
+          speed *= 0.5f;
+
+        if (target.x < physics.x)
+          physics.v.x = lerp(physics.v.x, -speed, 0.1f);
+        else if (target.x > physics.x)
+          physics.v.x = lerp(physics.v.x, speed, 0.1f);
+      }
+    }
+
+    if ((physics.v.x < -0.1f && colliding_left) || (physics.v.x > 0.1f && colliding_right) || (!colliding_up && colliding_side))
+    {
+      if (!colliding_up)
+        physics.v.y = -1.0f;
+    }
+  }
 }
 
 void Enemy::postupdate()
@@ -242,6 +300,10 @@ void Enemy::postupdate()
       renderer.sprite_interpolated.animation_speed = 1;
   }
   else if (type == Type::Bat)
+  {
+    renderer.sprite_interpolated.sprite.set_frame_durations({ fabs(physics.v.x) < 0.1f ? 200 : 100, 100 });
+  }
+  else if (type == Type::FallSlime)
   {
     renderer.sprite_interpolated.sprite.set_frame_durations({ fabs(physics.v.x) < 0.1f ? 200 : 100, 100 });
   }
