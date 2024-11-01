@@ -44,10 +44,12 @@ void Bird::init()
                .size(0.4f, 0.6f)
                .life(30, 60)
                .color(PALETTE_RED)
-               .velocity({ -0.6f, -0.6f }, { 0.6f, 0.1f })
+               .velocity({ -0.6f, -1.0f }, { 0.6f, 0.1f })
                .gravity(0.08f)
                .sprite("assets/tileset.png:bit")
                .build();
+
+  visible_timer_max = randi(180, 300);
 }
 
 void Bird::preupdate()
@@ -56,14 +58,28 @@ void Bird::preupdate()
 
   const auto rect = physics.mask.rect(physics.x, physics.y);
 
+  if (chance(1))
+    Game::add_particles(physics.x, physics.y, particle, 1);
+
   if (visible_timer > 0 || Game::on_screen(rect))
     visible_timer += 1;
 
   if (visible_timer >= visible_timer_max)
   {
-    physics.v.y -= 0.1f + randf(0.5f, 1.0f);
+    physics.v.y -= 0.1f + randf(-0.5f, 1.0f);
     physics.v.y = Clamp(physics.v.y, -4.0f, 4.0f);
     physics.v.x = randf(-2.0f, 2.0f);
+
+    if (chance(2))
+      Game::add_particles(physics.x, physics.y, particle, 1);
+
+    if (!Game::on_screen(rect))
+      destroy_entity(entity);
+    else if (visible_timer > visible_timer_max * 4)
+    {
+      destroy_entity(entity);
+      Game::add_particles(physics.x, physics.y, particle, 3);
+    }
   }
 }
 

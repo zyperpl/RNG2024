@@ -20,7 +20,7 @@ private:
   int start_y { 0 };
 
   int visible_timer { 0 };
-  int visible_timer_max { 180 };
+  int visible_timer_max { 60 };
 };
 
 EXTERN_COMPONENT_TEMPLATE(Bird);
