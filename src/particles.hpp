@@ -31,15 +31,15 @@ struct Particle
 
   float gravity{ 0.0f };
 
-  Color color{ BLACK };
+  Color color{ 0, 0, 0, 255 };
   float alpha{ 1.0f };
 
   float alpha1{ 1.0f };
   float alpha2{ 1.0f };
   float alpha3{ 1.0f };
-  Color color1{ WHITE };
-  Color color2{ WHITE };
-  Color color3{ WHITE };
+  Color color1{ 0, 0, 0, 255 };
+  Color color2{ 0, 0, 0, 255 };
+  Color color3{ 0, 0, 0, 255 };
 
   size_t sprite_id{ std::numeric_limits<size_t>::max() };
   float frame{ 0.0f };

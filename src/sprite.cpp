@@ -172,7 +172,7 @@ void Sprite::load_texture_with_animation()
                               .height  = ase->h,
                               .mipmaps = 1,
                               .format  = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8 };
-      ImageDraw(&image, frameImage, src, dest, WHITE);
+      ImageDraw(&image, frameImage, src, dest, FULLWHITE);
     }
     texture = CachedTexture::add(path, LoadTextureFromImage(image));
     UnloadImage(image);

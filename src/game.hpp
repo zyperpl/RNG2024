@@ -55,6 +55,8 @@ struct Game final
 private:
   [[nodiscard]] static Game &get();
 
+  void init();
+
   struct Values
   {
     double frame_progress{ 0.0 };

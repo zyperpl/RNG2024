@@ -65,6 +65,6 @@ struct Mask
   void draw(int x, int y) const
   {
     const auto &rec = rect(x, y);
-    DrawRectangleLinesEx(rec, 1, RED);
+    DrawRectangleLinesEx(rec, 1, RBLACK);
   }
 };

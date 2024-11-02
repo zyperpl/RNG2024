@@ -187,7 +187,7 @@ auto update_draw_frame()
                  0,
                  text_y,
                  font_size,
-                 reload_recently ? RED : PALETTE_WHITE);
+                 reload_recently ? RBLACK : PALETTE_WHITE);
         text_y += font_size;
       }
     }

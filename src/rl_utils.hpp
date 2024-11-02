@@ -154,7 +154,7 @@ struct RenderTexture
     if (!valid())
       return;
 
-    DrawTexturePro(value.texture, flip ? rect_flipped() : rect(), destination, Vector2Zero(), 0, WHITE);
+    DrawTexturePro(value.texture, flip ? rect_flipped() : rect(), destination, Vector2Zero(), 0, FULLWHITE);
   }
 
   inline Rectangle rect() const
@@ -221,7 +221,7 @@ struct ScreenEffect
 
 } // namespace NRL
 
-bool operator==(const Color &lhs, const Color &rhs)
+[[nodiscard]] static inline constexpr bool operator==(const Color &lhs, const Color &rhs)
 {
   return lhs.r == rhs.r && lhs.g == rhs.g && lhs.b == rhs.b && lhs.a == rhs.a;
 }

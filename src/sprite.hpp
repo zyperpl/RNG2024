@@ -73,7 +73,7 @@ public:
   Vector2 source_offset{ 0.0f, 0.0f };
   Vector2 scale{ 1.0f, 1.0f };
 
-  Color tint{ WHITE };
+  Color tint{ FULLWHITE };
   float rotation{ 0.0f };
 
   inline bool has_tag(const std::string &tag_name) const

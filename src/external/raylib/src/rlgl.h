@@ -3613,6 +3613,7 @@ void *rlReadTexturePixels(unsigned int id, int width, int height, int format)
     void *pixels = NULL;
 
 #if defined(GRAPHICS_API_OPENGL_11) || defined(GRAPHICS_API_OPENGL_33)
+    printf("Using OpenGL 3.3 API");
     glBindTexture(GL_TEXTURE_2D, id);
 
     // NOTE: Using texture id, we can retrieve some texture info (but not on OpenGL ES 2.0)
@@ -3643,6 +3644,7 @@ void *rlReadTexturePixels(unsigned int id, int width, int height, int format)
 #endif
 
 #if defined(GRAPHICS_API_OPENGL_ES2)
+    printf("Using OpenGL ES 2.0 API");
     // glGetTexImage() is not available on OpenGL ES 2.0
     // Texture width and height are required on OpenGL ES 2.0, there is no way to get it from texture id
     // Two possible Options:

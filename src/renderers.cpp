@@ -16,6 +16,7 @@ void SpriteInterpolated::render()
   if (!visible)
     return;
 
+#if 0
   if (std::isnan(previous_x) || std::isnan(previous_y))
   {
     previous_x = x;
@@ -33,6 +34,16 @@ void SpriteInterpolated::render()
   sprite.position.x = draw_x;
   sprite.position.y = draw_y;
   sprite.draw();
+#else
+  
+  const auto &draw_x = x;
+  const auto &draw_y = y;
+
+  sprite.position.x = draw_x;
+  sprite.position.y = draw_y;
+  sprite.draw();
+
+#endif
 
   previous_x = draw_x;
   previous_y = draw_y;
@@ -71,5 +82,5 @@ inline void TileRenderer::render(Sprite &sprite, Rectangle source, Vector2 posit
                  { position.x, position.y, source.width, source.height },
                  { source.width / 2.0f, source.height / 2.0f },
                  0.0f,
-                 WHITE);
+                 FULLWHITE);
 }

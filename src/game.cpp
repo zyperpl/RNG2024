@@ -36,6 +36,7 @@ extern "C"
       else
         game = static_cast<Game *>(game_ptr);
     }
+    game->init();
     add_entity(Player());
 
     game->particle_system = add_component(create_entity(), ParticleSystem(-2));
@@ -268,7 +269,7 @@ extern "C"
       float cloud_y          = 120.0f;
       cloud_x                = fmod(Game::tick() * 0.5f - camera.target.x, w);
       const auto cloud_color = PALETTE_WHITE;
-      for (int i = -1; i < 2; i++)
+      for (int i = -2; i < 4; i++)
       {
         DrawCircle(cloud_x + i * w, cloud_y, 60, cloud_color);
         DrawCircle(cloud_x + 80 + i * w, cloud_y - 20, 60, cloud_color);
@@ -288,7 +289,7 @@ extern "C"
       EndMode2D();
 
 #if defined(DEBUG)
-      DrawTexture(game.palette_texture, 2, 2, WHITE);
+      DrawTexture(game.palette_texture, 2, 2, FULLWHITE);
       DrawTextEx(
         game.font, TextFormat("Lights: %zu", light_idx), { 2, 12 }, game.font_size, game.font_spacing, PALETTE_YELLOW);
 #endif
@@ -433,7 +434,7 @@ extern "C"
                                      static_cast<float>(dialog_w),
                                      static_cast<float>(dialog_h) };
 
-        DrawTextureNPatch(tileset, npatchinfo, dialog_rect, Vector2{ 0, 0 }, 0.0f, WHITE);
+        DrawTextureNPatch(tileset, npatchinfo, dialog_rect, Vector2{ 0, 0 }, 0.0f, FULLWHITE);
       }
 
       DrawTextureNPatch(tileset,
@@ -444,7 +445,7 @@ extern "C"
                                    static_cast<float>(game.map_texture.height) - 56 },
                         Vector2{ 0, 0 },
                         0.0f,
-                        WHITE);
+                        FULLWHITE);
       DrawTextureNPatch(tileset,
                         npatchinfo,
                         Rectangle{ static_cast<float>(game.map_x - 62),
@@ -453,7 +454,7 @@ extern "C"
                                    static_cast<float>(game.map_texture.height) - 56 },
                         Vector2{ 0, 0 },
                         0.0f,
-                        WHITE);
+                        FULLWHITE);
 
       game.dither_fx.disable();
     }
@@ -643,7 +644,9 @@ Game &Game::get()
   return *game;
 }
 
-Game::Game()
+Game::Game() {}
+
+void Game::init()
 {
   music = LoadMusicStream("assets/music/electric-chill-pop.mp3");
   PlayMusicStream(music);
@@ -656,8 +659,10 @@ Game::Game()
   font = LoadFontEx("assets/KubastaFixed.ttf", font_size, nullptr, 0);
 
   // NOTE: Some pixelart fonts are anti-aliased.
+  // On the Web we cannot retrieve image from the GPU texture, possibly due to a bug or WebGL limitation.
+#if !defined(EMSCRIPTEN)
   auto font_image = LoadImageFromTexture(font.texture);
-  UnloadTexture(font.texture);
+  ImageFormat(&font_image, PIXELFORMAT_UNCOMPRESSED_GRAY_ALPHA);
   for (int y = 0; y < font_image.height; y++)
   {
     for (int x = 0; x < font_image.width; x++)
@@ -673,8 +678,14 @@ Game::Game()
       }
     }
   }
+  //ExportImage(font_image, "assets/KubastaFixed.png");
   font.texture = LoadTextureFromImage(font_image);
   UnloadImage(font_image);
+
+#else
+  UnloadTexture(font.texture);
+  font.texture = LoadTexture("assets/KubastaFixed.png");
+#endif
 
   assert(IsFontValid(font) && "Font is not valid");
 }
@@ -1119,7 +1130,7 @@ void Game::update_map()
 
 void Game::draw_map()
 {
-  DrawTexture(map_texture, map_x, map_y, WHITE);
+  DrawTexture(map_texture, map_x, map_y, FULLWHITE);
 
   for (size_t i = 0; i < map_nodes.size(); ++i)
   {
@@ -1245,7 +1256,7 @@ void Game::draw_map()
       if (!n.occupied)
         DrawTextEx(font, text, Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE[tick() / 8 % 8]);
       else
-        DrawTextEx(font, text, Vector2{ tx, ty + 1.0f }, font_size, font_spacing, RED);
+        DrawTextEx(font, text, Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE_RED);
 
       DrawTextEx(font, text, { tx, ty }, font_size, font_spacing, PALETTE_WHITE);
     }
