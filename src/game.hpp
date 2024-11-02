@@ -50,6 +50,7 @@ struct Game final
   [[nodiscard]] static bool on_screen(Rectangle rect);
   static void defer_draw(Entity entity, std::function<void()> &&callback);
   static void queue_message(std::string message, Color color = PALETTE_WHITE);
+  static void end_level();
 
 private:
   [[nodiscard]] static Game &get();
@@ -91,6 +92,8 @@ private:
   void draw_deferred();
   std::vector<std::pair<Entity, std::function<void()>>> deferred_draws;
 
+  bool action_pressed { false };
+
   void update_messages();
   void draw_messages();
   [[nodiscard]] bool has_messages() const
@@ -100,6 +103,25 @@ private:
   std::queue<std::pair<std::string, Color>> messages;
   std::pair<std::string, Color> drawn_message;
   bool message_ready{ false };
+
+  struct MapNode
+  {
+    std::string name;
+    Vector2 position;
+    float radius{ 30.0f };
+    bool occupied{ false };
+    bool discovered{ false };
+    bool completed { false };
+    float draw_radius{ 100.0f };
+  };
+  std::vector<MapNode> map_nodes{ { "Area Zero", Vector2{ 164, 92 }, 30.0f, true }, { "Habitat", Vector2{ 186, 82 }, 10.0f } };
+  void update_map();
+  void draw_map();
+  bool show_map{ false };
+  int map_x = 400;
+  int map_y = 6;
+  size_t selected_map_node { 0 };
+  Texture map_texture{ LoadTexture("assets/map.png") };
 
   friend void G_create_game();
   friend void G_reload_game();

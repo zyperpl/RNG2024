@@ -30,7 +30,7 @@ private:
   int start_x{ 0 };
   int start_y{ 0 };
   int dir_x{ -1 };
-  bool hurted{ false };
+  bool alerted{ false };
   Vector2 target{ 0, 0 };
   Type type{ Type::Slime };
 };

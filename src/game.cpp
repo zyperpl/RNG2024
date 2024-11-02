@@ -69,7 +69,7 @@ extern "C"
 
     auto &manager = Manager::get();
     manager.call_init();
-    game->level.load("Level_0");
+    game->level.load("Area_Zero");
   }
 
   void G_reload_game()
@@ -217,6 +217,7 @@ extern "C"
       camera.rotation = 0.0f;
     }
 
+    // map variables
     static auto tileset        = LoadTexture("assets/tileset.png");
     static auto tileset_normal = LoadTexture("assets/tileset_normal.png");
 
@@ -264,18 +265,21 @@ extern "C"
 
       const auto w           = game_render_texture.texture.width;
       static float cloud_x   = 0.0f;
+      float cloud_y          = 120.0f;
       cloud_x                = fmod(Game::tick() * 0.5f - camera.target.x, w);
       const auto cloud_color = PALETTE_WHITE;
       for (int i = -1; i < 2; i++)
       {
-        DrawCircle(cloud_x + i * w, 120, 60, cloud_color);
-        DrawCircle(cloud_x + 80 + i * w, 120 - 20, 60, cloud_color);
-        DrawCircle(cloud_x + 80 + i * w, 120 + 60, 120, cloud_color);
-        DrawCircle(cloud_x + 240 + i * w, 120 + 60, 100, cloud_color);
-        DrawCircle(cloud_x + 160 + i * w, 120 + 20, 60, cloud_color);
+        DrawCircle(cloud_x + i * w, cloud_y, 60, cloud_color);
+        DrawCircle(cloud_x + 80 + i * w, cloud_y - 20, 60, cloud_color);
+        DrawCircle(cloud_x + 80 + i * w, cloud_y + 60, 120, cloud_color);
+        DrawCircle(cloud_x + 240 + i * w, cloud_y + 60, 100, cloud_color);
+        DrawCircle(cloud_x + 160 + i * w, cloud_y + 20, 60, cloud_color);
       }
 
-      game.dither_fx.draw_texture(target_source(game_render_texture));
+      Rectangle game_screen_dest = target_source(game_render_texture);
+      game_screen_dest.y -= (game.map_x - 400) * 2.5;
+      game.dither_fx.draw_texture(game_screen_dest);
 
       BeginMode2D(camera);
       {
@@ -285,12 +289,6 @@ extern "C"
 
 #if defined(DEBUG)
       DrawTexture(game.palette_texture, 2, 2, WHITE);
-      DrawTextEx(game.font,
-                 TextFormat("Lights: %zu", light_idx),
-                 { 2, 12 + 1 },
-                 game.font_size,
-                 game.font_spacing,
-                 PALETTE_BLACK);
       DrawTextEx(
         game.font, TextFormat("Lights: %zu", light_idx), { 2, 12 }, game.font_size, game.font_spacing, PALETTE_YELLOW);
 #endif
@@ -305,10 +303,16 @@ extern "C"
 
     clear_lights();
     light_idx                  = 0;
-    light_pos[light_idx].x     = 20.0f;
+    light_pos[light_idx].x     = 5.0f;
     light_pos[light_idx].y     = interface_texture_h / 2.0f;
-    light_size[light_idx]      = 4.0f;
+    light_size[light_idx]      = 3.7f;
     light_intensity[light_idx] = 1.0f;
+
+    light_idx++;
+    light_pos[light_idx].x     = 0.0f;
+    light_pos[light_idx].y     = interface_texture_h / 2.0f + 40.0f;
+    light_size[light_idx]      = 1.0f;
+    light_intensity[light_idx] = 0.6f;
 
     light_idx++;
     light_pos[light_idx].x     = -20.0f;
@@ -320,7 +324,7 @@ extern "C"
     light_pos[light_idx].x     = interface_texture_w / 2.0f;
     light_pos[light_idx].y     = interface_texture_h / 2.0f;
     light_size[light_idx]      = 600.0f;
-    light_intensity[light_idx] = 0.8f;
+    light_intensity[light_idx] = 0.6f;
 
     if (game.dither_fx.enable())
     {
@@ -412,7 +416,8 @@ extern "C"
         }
       }
 
-      if (game.has_messages())
+      static const NPatchInfo npatchinfo{ Rectangle{ 0.0f, 104.0f, 24.0f, 24.0f }, 8, 8, 8, 8, NPATCH_NINE_PATCH };
+      if (game.has_messages() || game.show_map)
       {
         const auto canvas_w = game.render_texture.value.texture.width;
         const auto canvas_h = game.render_texture.value.texture.height;
@@ -421,16 +426,34 @@ extern "C"
         int dialog_w     = canvas_w - border * 4;
         int dialog_h     = 40;
         int dialog_x     = canvas_w / 2 - dialog_w / 2;
-        int dialog_y     = canvas_h - 40 - border;
+        int dialog_y     = canvas_h - 30 - border;
 
         const Rectangle dialog_rect{ static_cast<float>(dialog_x),
                                      static_cast<float>(dialog_y),
                                      static_cast<float>(dialog_w),
                                      static_cast<float>(dialog_h) };
 
-        NPatchInfo npatchinfo{ Rectangle{ 0.0f, 104.0f, 24.0f, 24.0f }, 4, 4, 4, 4, NPATCH_NINE_PATCH };
         DrawTextureNPatch(tileset, npatchinfo, dialog_rect, Vector2{ 0, 0 }, 0.0f, WHITE);
       }
+
+      DrawTextureNPatch(tileset,
+                        npatchinfo,
+                        Rectangle{ static_cast<float>(game.map_x + 16),
+                                   static_cast<float>(game.map_y - 4),
+                                   static_cast<float>(game.map_texture.width - 40),
+                                   static_cast<float>(game.map_texture.height) - 56 },
+                        Vector2{ 0, 0 },
+                        0.0f,
+                        WHITE);
+      DrawTextureNPatch(tileset,
+                        npatchinfo,
+                        Rectangle{ static_cast<float>(game.map_x - 62),
+                                   static_cast<float>(game.map_y - 4),
+                                   static_cast<float>(76),
+                                   static_cast<float>(game.map_texture.height) - 56 },
+                        Vector2{ 0, 0 },
+                        0.0f,
+                        WHITE);
 
       game.dither_fx.disable();
     }
@@ -440,6 +463,8 @@ extern "C"
       ClearBackground(BLANK);
 
       game.dither_fx.draw_texture(target_source(interface_render_texture));
+
+      game.draw_map();
 
       if (game.has_messages())
         game.draw_messages();
@@ -486,6 +511,8 @@ extern "C"
     game->ticks += 1;
 
     auto &manager = Manager::get();
+
+    game->action_pressed = INPUT.jump.pressed() || INPUT.shoot.pressed() || INPUT.special.pressed();
 
     const auto &players = get_components<Player>();
     if (!players.empty() && game)
@@ -569,7 +596,7 @@ extern "C"
       return;
     }
 
-    if (!game->has_messages())
+    if (!game->has_messages() && !game->show_map)
     {
       for (auto &component_id : manager.preupdate_components)
       {
@@ -595,7 +622,14 @@ extern "C"
     else
     {
       game->update_messages();
+
+#if defined(DEBUG)
+      if (IsKeyPressed(KEY_B))
+        game->show_map = !game->show_map;
+#endif
     }
+
+    game->update_map();
 
     manager.call_init();
 
@@ -619,10 +653,11 @@ Game::Game()
   if (!IsFontValid(font))
     UnloadFont(font);
 
-  font            = LoadFontEx("assets/KubastaFixed.ttf", font_size, nullptr, 0);
+  font = LoadFontEx("assets/KubastaFixed.ttf", font_size, nullptr, 0);
+
+  // NOTE: Some pixelart fonts are anti-aliased.
   auto font_image = LoadImageFromTexture(font.texture);
   UnloadTexture(font.texture);
-
   for (int y = 0; y < font_image.height; y++)
   {
     for (int x = 0; x < font_image.width; x++)
@@ -639,6 +674,7 @@ Game::Game()
     }
   }
   font.texture = LoadTextureFromImage(font_image);
+  UnloadImage(font_image);
 
   assert(IsFontValid(font) && "Font is not valid");
 }
@@ -820,14 +856,78 @@ void Game::queue_message(std::string message, Color color)
   get().messages.push({ std::move(message), color });
 }
 
+void Game::end_level()
+{
+  auto &g = get();
+  if (g.level_name() == "Level_1")
+  {
+    const Color color{ PALETTE_YELLOW };
+    queue_message("#show_map");
+    queue_message("#complete 0");
+    queue_message("#discover 0");
+    queue_message("Hello?|Can you hear me?", color);
+    queue_message("I see you restored the connection in this area.", color);
+    queue_message("I'm glad you're here. I need your help.", color);
+    queue_message("Come find me, I'm north-east from your position.", color);
+    queue_message("#discover 1");
+    queue_message("Oh, and one more thing, be sure to-", color);
+
+    queue_message("Transmission lost", PALETTE_WHITE);
+    queue_message("New connected area available", PALETTE_WHITE);
+  }
+}
+
 void Game::update_messages()
 {
   if (messages.empty())
     return;
 
+  if (messages.front().first.starts_with('#'))
+  {
+    const auto &message = messages.front().first;
+
+    if (message.starts_with("#complete"))
+    {
+      const auto parts = split(message, ' ');
+      if (parts.size() == 2)
+      {
+        const size_t node_id = std::stoi(parts[1]);
+        if (node_id < map_nodes.size())
+        {
+          map_nodes[node_id].completed = true;
+        }
+      }
+      messages.pop();
+      return;
+    }
+
+    if (message == "#show_map")
+    {
+      show_map = true;
+      messages.pop();
+      return;
+    }
+
+    if (message.starts_with("#discover"))
+    {
+      const auto parts = split(message, ' ');
+      if (parts.size() == 2)
+      {
+        const size_t node_id = std::stoi(parts[1]);
+        if (node_id < map_nodes.size())
+        {
+          map_nodes[node_id].discovered = true;
+
+          selected_map_node = node_id;
+        }
+      }
+      messages.pop();
+      return;
+    }
+  }
+
   static int max_delay         = 4;
   static bool skipping_message = false;
-  const auto action_pressed    = INPUT.jump.pressed() || INPUT.shoot.pressed() || INPUT.special.pressed();
   if (!message_ready && action_pressed)
   {
     skipping_message = true;
@@ -860,14 +960,18 @@ void Game::update_messages()
   {
     if (action_pressed)
     {
+      action_pressed   = false;
       skipping_message = false;
       messages.pop();
       message_ready = false;
       drawn_message.first.clear();
       drawn_message.second = PALETTE_WHITE;
 
+      while (!messages.empty() && messages.front().first.empty())
+        messages.pop();
+
       // prepare next message immediately
-      if (!messages.empty() && !messages.front().first.empty())
+      if (!messages.empty())
       {
         drawn_message.first  = messages.front().first.at(0);
         drawn_message.second = messages.front().second;
@@ -888,7 +992,7 @@ void Game::draw_messages()
   const int dialog_w = canvas_w - border * 4;
   const int dialog_h = 40;
   const int dialog_x = canvas_w / 2 - dialog_w / 2;
-  const int dialog_y = canvas_h - 40 - border;
+  const int dialog_y = canvas_h - 30 - border;
 
   const auto &message = drawn_message.first;
   const auto &color   = drawn_message.second;
@@ -904,18 +1008,26 @@ void Game::draw_messages()
     if (*txt == '\0' || letter_size.x <= 0)
       continue;
 
-    if (c == ' ')
+    // hack
+    bool new_line = c == '|';
+
+    // hack
+    if (c == ' ' && tx + 40 > dialog_x + dialog_w - 60)
+      new_line = true;
+
+    if (new_line)
     {
-      // hack
-      if (tx + 40 > dialog_x + dialog_w - 60)
-      {
-        tx = 0;
-        ty += font_size;
-        continue;
-      }
+      tx = 0;
+      ty += font_size / 2 + 2;
+      continue;
     }
 
-    DrawTextEx(font, txt, { dialog_x + 5.0f + tx, dialog_y + 1.0f + ty }, font_size, font_spacing, PALETTE_GRAY);
+    DrawTextEx(font,
+               txt,
+               { dialog_x + 5.0f + tx, dialog_y + 1.0f + ty },
+               font_size,
+               font_spacing,
+               color == PALETTE_WHITE ? PALETTE_PURPLE : PALETTE_BLACK);
     DrawTextEx(font, txt, { dialog_x + 5.0f + tx, dialog_y + 0.0f + ty }, font_size, font_spacing, color);
 
     tx += letter_size.x + font_spacing;
@@ -931,5 +1043,211 @@ void Game::draw_messages()
                  font_size,
                  font_spacing,
                  PALETTE_YELLOW);
+  }
+}
+
+void Game::update_map()
+{
+  if (!show_map)
+  {
+    if (map_x < 400)
+      map_x += 4;
+    else
+      map_x = 400;
+
+    return;
+  }
+
+  if (map_x > 104)
+    map_x -= 4;
+  else
+    map_x = 104;
+
+  for (auto &n : map_nodes)
+  {
+    if (!n.discovered)
+      continue;
+
+    if (n.draw_radius > 4)
+      n.draw_radius -= 1.0f;
+  }
+
+  if (INPUT.left.pressed())
+  {
+    if (selected_map_node > 0)
+    {
+      selected_map_node -= 1;
+    }
+  }
+
+  if (INPUT.right.pressed())
+  {
+    if (selected_map_node < map_nodes.size() - 1)
+    {
+      selected_map_node += 1;
+    }
+  }
+
+  if (!has_messages())
+  {
+    if (action_pressed)
+    {
+      action_pressed = false;
+      printf("Selected node: %zu\n", selected_map_node);
+
+      for (auto &n : map_nodes)
+        n.occupied = false;
+
+      if (selected_map_node < map_nodes.size())
+      {
+        auto &n    = map_nodes[selected_map_node];
+        n.occupied = true;
+
+        std::string level_name = n.name;
+        std::replace(level_name.begin(), level_name.end(), ' ', '_');
+        level.load(level_name);
+
+        auto &manager = Manager::get();
+        game->particle_system.get().clear();
+        manager.call_init();
+
+        show_map = false;
+      }
+    }
+  }
+}
+
+void Game::draw_map()
+{
+  DrawTexture(map_texture, map_x, map_y, WHITE);
+
+  for (size_t i = 0; i < map_nodes.size(); ++i)
+  {
+    const auto &n = map_nodes[i];
+    Vector2 p     = n.position;
+    p.x           = map_x - 100 + p.x;
+
+    const auto &rd = n.draw_radius;
+    const auto &rs = n.radius;
+
+    if (n.discovered)
+    {
+      if (n.occupied)
+      {
+        DrawCircleV(p, 6, PALETTE_RED);
+        DrawCircleLinesV(p, rd + 1, PALETTE_BLACK);
+      }
+
+      if (selected_map_node == i)
+      {
+        DrawCircleLinesV(p, rd, PALETTE[tick() / 8 % 8]);
+        DrawCircleLinesV(p, rd + 1, PALETTE[tick() / 8 % 8]);
+        DrawCircleLinesV(p, rd + 2, PALETTE[tick() / 8 % 8]);
+      }
+
+      DrawCircleLinesV(p, rd - 1, PALETTE_WHITE);
+
+      DrawCircleLinesV(p, rs + 1, PALETTE_BLACK);
+      DrawCircleLinesV(p, rs, PALETTE_GREEN);
+    }
+  }
+
+  if (show_map && selected_map_node < map_nodes.size())
+  {
+    const auto &n  = map_nodes[selected_map_node];
+    const float tx = map_x - 100 + 41;
+    float ty       = map_y;
+
+    int connections    = 0;
+    int completed      = 0;
+    float line_spacing = 10.0f;
+    for (const auto &n : map_nodes)
+    {
+      if (n.occupied)
+      {
+        DrawTextEx(font, "Current area", Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE_GRAY);
+        DrawTextEx(font, "Current area", Vector2{ tx, ty }, font_size, font_spacing, PALETTE_WHITE);
+        ty += line_spacing;
+
+        DrawTextEx(font, n.name.c_str(), Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE_RED);
+        DrawTextEx(font, n.name.c_str(), Vector2{ tx, ty }, font_size, font_spacing, PALETTE_WHITE);
+        ty += line_spacing;
+      }
+
+      if (n.discovered)
+        connections += 1;
+
+      if (n.completed)
+        completed += 1;
+    }
+
+    if (connections > 1)
+    {
+      ty += line_spacing;
+      DrawTextEx(font, "Connected: ", Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE_GRAY);
+      DrawTextEx(font, "Connected: ", Vector2{ tx, ty }, font_size, font_spacing, PALETTE_WHITE);
+      ty += line_spacing;
+
+      DrawTextEx(
+        font, TextFormat("%d areas", connections), Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE_GRAY);
+      DrawTextEx(font, TextFormat("%d areas", connections), Vector2{ tx, ty }, font_size, font_spacing, PALETTE_YELLOW);
+
+      ty += line_spacing;
+    }
+
+    const double completed_percent = static_cast<double>(completed) / map_nodes.size() * 100.0;
+    ty += line_spacing;
+    DrawTextEx(font, "Completed: ", Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE_GRAY);
+    DrawTextEx(font, "Completed: ", Vector2{ tx, ty }, font_size, font_spacing, PALETTE_WHITE);
+    ty += line_spacing;
+    DrawTextEx(
+      font, TextFormat("%.0f%%", completed_percent), Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE_GRAY);
+    DrawTextEx(font, TextFormat("%.0f%%", completed_percent), Vector2{ tx, ty }, font_size, font_spacing, PALETTE_BLUE);
+    ty += line_spacing;
+
+    const double connected_percent = static_cast<double>(connections) / map_nodes.size() * 100.0;
+    ty += line_spacing;
+    DrawTextEx(font, "Connectivity: ", Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE_GRAY);
+    DrawTextEx(font, "Connectivity: ", Vector2{ tx, ty }, font_size, font_spacing, PALETTE_WHITE);
+    ty += line_spacing;
+    DrawTextEx(
+      font, TextFormat("%.0f%%", connected_percent), Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE_GRAY);
+    DrawTextEx(
+      font, TextFormat("%.0f%%", connected_percent), Vector2{ tx, ty }, font_size, font_spacing, PALETTE_YELLOW);
+
+    if (!has_messages())
+    {
+      const int canvas_w = 320;
+      const int canvas_h = 180;
+      const int border   = 20;
+      int dialog_w       = canvas_w - border * 4;
+      int dialog_h       = 40;
+      int dialog_x       = canvas_w / 2 - dialog_w / 2;
+      int dialog_y       = canvas_h - 30 - border;
+
+      std::string level_name(n.name);
+      auto text      = TextFormat("%s %s %s",
+                             selected_map_node == 0 ? "" : "<",
+                             level_name.c_str(),
+                             selected_map_node == map_nodes.size() - 1 ? "" : ">");
+      auto text_size = MeasureTextEx(font, text, font_size, font_spacing);
+      float tx       = roundf(dialog_x + dialog_w / 2.0f - text_size.x / 2.0f);
+      float ty       = roundf(dialog_y + dialog_h / 2.0f - 16.0f);
+
+      DrawTextEx(font, text, Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE_BLACK);
+      DrawTextEx(font, text, Vector2{ tx, ty }, font_size, font_spacing, PALETTE_WHITE);
+
+      ty += line_spacing;
+      text      = n.occupied ? "You are here" : "Embark";
+      text_size = MeasureTextEx(font, text, font_size, font_spacing);
+      tx        = roundf(dialog_x + dialog_w / 2.0f - text_size.x / 2.0f);
+
+      if (!n.occupied)
+        DrawTextEx(font, text, Vector2{ tx, ty + 1.0f }, font_size, font_spacing, PALETTE[tick() / 8 % 8]);
+      else
+        DrawTextEx(font, text, Vector2{ tx, ty + 1.0f }, font_size, font_spacing, RED);
+
+      DrawTextEx(font, text, { tx, ty }, font_size, font_spacing, PALETTE_WHITE);
+    }
   }
 }

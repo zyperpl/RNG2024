@@ -25,7 +25,11 @@ struct Interactable
     Level::Field field;
   };
 
-  using Action = std::variant<ActionMessage, ActionLevelStore>;
+  struct ActionEndLevel
+  {
+  };
+
+  using Action = std::variant<ActionMessage, ActionLevelStore, ActionEndLevel>;
 
   COMPONENT(Interactable);
 

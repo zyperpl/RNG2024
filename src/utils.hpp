@@ -152,6 +152,31 @@ inline void generate_id(size_t &counter, std::string &level_id)
   level_id = std::to_string(counter++) + "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[randi(25)];
 }
 
+// TODO: optimize using std::string_view and std::string::find (?)
+[[nodiscard]] inline std::vector<std::string> split(const std::string &str, char sep)
+{
+  std::vector<std::string> result;
+  std::string token;
+
+  for (const auto &c : str)
+  {
+    if (c == sep)
+    {
+      result.push_back(token);
+      token.clear();
+    }
+    else
+    {
+      token += c;
+    }
+  }
+
+  if (!token.empty())
+    result.push_back(token);
+
+  return result;
+}
+
 extern void *allocate(size_t size);
 extern void deallocate(void *memory);
 

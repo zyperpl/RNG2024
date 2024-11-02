@@ -7,6 +7,12 @@
 
 struct Terminal
 {
+  enum Type
+  {
+    Message,
+    EndLevel
+  };
+
   COMPONENT(Terminal);
   Terminal(const Level::Entity &entity);
 
@@ -14,7 +20,11 @@ struct Terminal
   void update();
 
 private:
+  void disable();
+
+  Type type{ Message };
   GameSound sound;
+  std::vector<std::string> messages;
   int start_x{ 0 };
   int start_y{ 0 };
   int w{ 8 };

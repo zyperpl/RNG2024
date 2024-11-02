@@ -33,6 +33,10 @@ void execute_action(const Interactable::Action &action)
   {
     Level::Level::store(level_store->entity_level_id, level_store->key, level_store->field);
   }
+  else if (auto level_store = std::get_if<Interactable::ActionEndLevel>(&action))
+  {
+    Game::end_level();
+  }
   else
   {
     assert(false && "Unknown interactable action type");

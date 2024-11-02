@@ -146,6 +146,12 @@ void LevelLoader::unload_project()
                                cache->ldtk_project.levels.end(),
                                [&name](const ldtk::Level &level) { return level.identifier == name; });
 
+  if (level_it == cache->ldtk_project.levels.end())
+  {
+    fprintf(stderr, "Level not found %s\n", name.c_str());
+    return null_level;
+  }
+
   ASSERT_RET_VAL(level_it != cache->ldtk_project.levels.end(), "Level not found", null_level);
 
   return *level_it;

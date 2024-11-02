@@ -9,6 +9,8 @@
 #include "sound.hpp"
 #include "utils.hpp"
 
+#include "magic_enum.hpp"
+
 REGISTER_COMPONENT(Terminal);
 COMPONENT_TEMPLATE(Terminal);
 REGISTER_LEVEL_ENTITY(Terminal);
@@ -20,6 +22,20 @@ Terminal::Terminal(const Level::Entity &entity)
 
   w = entity.size.w;
   h = entity.size.h;
+
+  std::string type_str;
+  read_field(entity.fields, "Type", type_str);
+  auto type_val = magic_enum::enum_cast<Type>(type_str);
+  if (type_val)
+    type = type_val.value();
+  else
+  {
+    assert(false && "Unknown terminal type");
+  }
+
+  std::string text_str;
+  read_field(entity.fields, "Text", text_str);
+  messages = split(text_str, '\n');
 }
 
 void Terminal::init()
@@ -41,11 +57,26 @@ void Terminal::init()
   sprite.set_frame_height(32);
   sprite.set_frame_count(2);
 
-  add_component(entity,
-                Interactable(Interactable::ActionMessage{ "Not responding..." },
-                             Interactable::ActionMessage{ "Hello world!", PALETTE_YELLOW }));
-
   add_component(entity, Light(physics.x + 12, physics.y + 5));
+
+  {
+    auto &interactable = add_component(entity, Interactable()).get();
+
+    if (!messages.empty())
+    {
+      for (const auto &message : messages)
+      {
+        printf("Adding message: %s\n", message.c_str());
+        interactable.add(Interactable::ActionMessage{ message });
+      }
+    }
+
+    if (type == Type::EndLevel)
+    {
+      interactable.add(Interactable::ActionEndLevel());
+    }
+  }
+
   // sound = GameSound();
 }
 
@@ -65,14 +96,22 @@ void Terminal::update()
   }
   else
   {
-    light.intensity = 0.1f;
-    light.size      = 0.8f;
-
-    interactable.disable();
-
-    auto &renderer                               = get_component<SpriteRenderer>(entity).get();
-    renderer.sprite_interpolated.animation_speed = 0;
-    auto &sprite                                 = renderer.sprite_interpolated.sprite;
-    sprite.set_frame(1);
+    disable();
   }
+}
+
+void Terminal::disable()
+{
+  auto &interactable = get_component<Interactable>(entity).get();
+  auto &light        = get_component<Light>(entity).get();
+
+  light.intensity = 0.1f;
+  light.size      = 0.8f;
+
+  interactable.disable();
+
+  auto &renderer                               = get_component<SpriteRenderer>(entity).get();
+  renderer.sprite_interpolated.animation_speed = 0;
+  auto &sprite                                 = renderer.sprite_interpolated.sprite;
+  sprite.set_frame(1);
 }

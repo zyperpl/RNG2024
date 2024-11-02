@@ -2,6 +2,7 @@
 
 #include "block.hpp"
 #include "level_loader.hpp"
+#include "player.hpp"
 #include "renderers.hpp"
 
 #include "magic_enum.hpp"
@@ -77,6 +78,17 @@ void Level::create_entities(const LevelLoader &level_loader)
     {
       entity_ids[id] = create_entity();
       printf("Created entity %s (%lu)\n", id.c_str(), entity_ids[id]);
+    }
+
+    if (level_entity.name == "PlayerPosition")
+    {
+      if (auto players = get_components<Player>(); !players.empty())
+      {
+        auto &player  = players.front();
+        auto &physics = get_component<Physics>(player.entity).get();
+        physics.x     = level_entity.position.x;
+        physics.y     = level_entity.position.y;
+      }
     }
   }
 

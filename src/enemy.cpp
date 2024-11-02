@@ -194,11 +194,12 @@ void Enemy::update()
     else
     {
       float vis_size{ 80.0f };
-      if (hurted)
+      if (alerted)
         vis_size *= 2.0f;
       const Rectangle visibility_rect{ position.x - vis_size / 2.0f, position.y, vis_size, vis_size };
       if (CheckCollisionPointRec(player_position, visibility_rect))
       {
+        alerted                 = true;
         const float player_dist = Vector2Distance(position, player_position);
         if (player_dist < 40 && player_dist > 16)
         {
@@ -240,11 +241,11 @@ void Enemy::update()
   else if (type == Type::FallSlime)
   {
     float vis_size = 35.0f;
-    if (hurted)
+    if (alerted)
       vis_size *= 2.0f;
     const Rectangle visibility_rect{ position.x - vis_size / 2.0f, position.y, vis_size, 200.0f };
 
-    if (hurted || CheckCollisionPointRec(player_position, visibility_rect))
+    if (alerted || CheckCollisionPointRec(player_position, visibility_rect))
     {
       physics.gravity = 0.1f;
       sprite.scale.y  = 1.0f;
@@ -272,7 +273,8 @@ void Enemy::update()
       }
     }
 
-    if ((physics.v.x < -0.1f && colliding_left) || (physics.v.x > 0.1f && colliding_right) || (!colliding_up && colliding_side))
+    if ((physics.v.x < -0.1f && colliding_left) || (physics.v.x > 0.1f && colliding_right) ||
+        (!colliding_up && colliding_side))
     {
       if (!colliding_up)
         physics.v.y = -1.0f;
@@ -315,7 +317,7 @@ void Enemy::postupdate()
 
   if (hurtable.process())
   {
-    hurted          = true;
+    alerted         = true;
     light.intensity = 1.0f;
     Game::add_particles(physics.x, physics.y, hurt_particle, 2);
     Game::add_particles(hurtable.hit_point_x, hurtable.hit_point_y, hurt_particle2, 20);

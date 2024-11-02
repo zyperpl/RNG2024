@@ -93,6 +93,7 @@ struct Input
     update_state(shoot, KEY_THREE);
     update_state(shoot, KEY_C);
     update_state(shoot, KEY_H);
+    update_state(shoot, KEY_ENTER);
 
     update_state(mute, KEY_M);
 
@@ -174,7 +175,7 @@ struct Input
     update_continuous_state(down, KEY_DOWN, KEY_S);
     update_continuous_state(special, KEY_ONE, KEY_Z, KEY_F);
     update_continuous_state(jump, KEY_TWO, KEY_X, KEY_G, KEY_SPACE);
-    update_continuous_state(shoot, KEY_THREE, KEY_C, KEY_H);
+    update_continuous_state(shoot, KEY_THREE, KEY_C, KEY_H, KEY_ENTER);
     update_continuous_state(mute, KEY_M);
 
     update_continous_mouse_state(mouse_left, MOUSE_LEFT_BUTTON);
