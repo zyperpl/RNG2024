@@ -41,6 +41,7 @@ private:
   int shoot_max_timer{ 80 };
   GameSound death_sound;
   GameSound hurt_sound;
+  GameSound boss_sound;
 };
 
 EXTERN_COMPONENT_TEMPLATE(Enemy);

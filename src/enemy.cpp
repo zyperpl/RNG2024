@@ -58,6 +58,8 @@ void Enemy::init()
 
   hurt_sound = GameSound { "assets/sounds/hurt2.wav" };
 
+  boss_sound = GameSound { "assets/sounds/monster.wav" };
+
   switch (type)
   {
     case Type::Slime:
@@ -333,6 +335,13 @@ void Enemy::update()
   }
   else if (type == Type::Boss)
   {
+    static bool played_boss_sound = false;
+    if (!played_boss_sound)
+    {
+      boss_sound.play();
+      played_boss_sound = true;
+    }
+
     target.x = start_x - randi(0, 60);
     target.y = start_y;
 
@@ -343,6 +352,7 @@ void Enemy::update()
         auto enemies = get_components<Enemy>();
         if (enemies.count < 20)
         {
+          boss_sound.play();
           auto enemy = add_entity(Enemy(physics.x, physics.y, chance(30) ? Enemy::Type::Slime : Enemy::Type::Bat));
 
           auto &manager = Manager::get();
@@ -461,6 +471,9 @@ void Enemy::postupdate()
 
       if (type == Type::Boss)
       {
+        boss_sound.set_pitch(2.0f);
+        boss_sound.set_volume(2.0f);
+        boss_sound.play();
         Game::skip_ticks(6);
       }
     }
