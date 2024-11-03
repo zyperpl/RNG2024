@@ -46,6 +46,9 @@ void Bullet::init()
                    .velocity({ 0, 0 }, { -0.5f, -0.5f }, { 0.5f, 0.5f })
                    .sprite("assets/tileset.png:dust")
                    .build();
+
+  sound = GameSound("assets/sounds/boom.wav");
+  sound.set_volume(0.4f);
 }
 void Bullet::update()
 {
@@ -91,6 +94,9 @@ void Bullet::collision(Entity other)
   {
     Game::add_particles(physics.x, physics.y, hit_particle, 10);
     destroy_entity(entity);
+
+    sound.set_volume(0.1f + randf(0.0f, 0.1f));
+    sound.play();
   }
 
   if (auto hurtable = get_component<Hurtable>(other); hurtable)
@@ -104,5 +110,8 @@ void Bullet::collision(Entity other)
     Game::add_particles(physics.x, physics.y, trail_particle, 4);
 
     destroy_entity(entity);
+    
+    if (!sound.is_playing())
+      sound.play();
   }
 }

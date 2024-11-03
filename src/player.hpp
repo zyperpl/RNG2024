@@ -7,6 +7,7 @@
 #include "particles.hpp"
 #include "physics.hpp"
 #include "utils.hpp"
+#include "sound.hpp"
 
 struct Light;
 struct SpriteRenderer;
@@ -23,6 +24,7 @@ struct Player
 
   std::chrono::time_point<std::chrono::high_resolution_clock> init_time;
 
+  GameSound boom_sound;
 private:
   int dir_x{ 1 };
   int dir_y{ 0 };
@@ -43,6 +45,11 @@ private:
   ComponentReference<Light> light;
   Particle shoot_particle;
   Particle jump_particle;
+
+  GameSound shoot_sound;
+  GameSound jump_sound;
+  GameSound land_sound;
+  GameSound hurt_sound;
 
   bool can_interact{ false };
   Vector2 interact_point{ 0.0f, 0.0f };

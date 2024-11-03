@@ -606,7 +606,10 @@ extern "C"
       if (player_hurtable.health <= 0)
       {
         if (game->defeated_frames <= 0)
+        {
           game->defeated_frames = game->defeated_max_frames;
+          player.boom_sound.play();
+        }
       }
       else if (player_x < x_offset)
       {
@@ -647,7 +650,10 @@ extern "C"
         {
           player_hurtable.hurt(1000, player_x, player_y);
           if (game->defeated_frames <= 0)
+          {
             game->defeated_frames = game->defeated_max_frames;
+            player.boom_sound.play();
+          }
         }
       }
       else if (player_physics.is_colliding_with_solid())
@@ -840,6 +846,11 @@ void Game::init()
 #endif
 
   assert(IsFontValid(font) && "Font is not valid");
+
+  char_sound   = GameSound("assets/sounds/blip.wav");
+  select_sound = GameSound("assets/sounds/blip2.wav");
+  up_sound     = GameSound("assets/sounds/up2.wav");
+  up2_sound     = GameSound("assets/sounds/up3.wav");
 }
 
 void Game::draw()
@@ -1168,6 +1179,7 @@ void Game::update_messages()
         if (node_id < map_nodes.size())
         {
           map_nodes[node_id].discovered = true;
+          up_sound.play();
 
           selected_map_node = node_id;
         }
@@ -1194,6 +1206,11 @@ void Game::update_messages()
         delay                = max_delay;
         drawn_message.first  = messages.front().first.substr(0, drawn_message.first.size() + 1);
         drawn_message.second = messages.front().second;
+
+        char_sound.set_pitch(1.0f + randf(-0.2f, 0.1f));
+        if (drawn_message.second != PALETTE_WHITE)
+          char_sound.set_pitch(1.0f + randf(0.1f, 0.6f));
+        char_sound.play();
       }
       else
         delay -= 1;
@@ -1217,6 +1234,8 @@ void Game::update_messages()
       message_ready = false;
       drawn_message.first.clear();
       drawn_message.second = PALETTE_WHITE;
+
+      select_sound.play();
 
       while (!messages.empty() && messages.front().first.empty())
         messages.pop();
@@ -1328,6 +1347,7 @@ void Game::update_map()
     if (selected_map_node > 0)
     {
       selected_map_node -= 1;
+      char_sound.play();
     }
   }
 
@@ -1336,6 +1356,7 @@ void Game::update_map()
     if (selected_map_node < map_nodes.size() - 1)
     {
       selected_map_node += 1;
+      char_sound.play();
     }
   }
 
@@ -1365,6 +1386,7 @@ void Game::update_map()
         if (n.occupied || n.completed)
           return;
         load_selected_level();
+        select_sound.play();
       }
     }
   }
@@ -1388,6 +1410,7 @@ void Game::load_selected_level()
   for (auto &n : map_nodes)
     n.occupied = false;
 
+  up2_sound.play();
   n.occupied = true;
 
   std::string level_name = n.name;
@@ -1541,8 +1564,8 @@ void Game::draw_map()
       DrawTextEx(font, text, Vector2{ tx, ty }, font_size, font_spacing, PALETTE_WHITE);
 
       ty += line_spacing;
-      
-      text      = "Embark";
+
+      text = "Embark";
 
       if (n.completed)
         text = "Completed";

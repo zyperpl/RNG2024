@@ -42,6 +42,8 @@ void GameSound::play() const noexcept
     const auto &sound = SOUNDS[path][i];
     if (!IsSoundPlaying(sound))
     {
+      SetSoundVolume(sound, volume);
+      SetSoundPitch(sound, pitch);
       PlaySound(sound);
       last_index = i;
       return;

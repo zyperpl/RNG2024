@@ -10,6 +10,11 @@
 REGISTER_COMPONENT(Interactable);
 COMPONENT_TEMPLATE(Interactable);
 
+void Interactable::init()
+{
+  sound = GameSound("assets/sounds/up.wav");
+}
+
 bool Interactable::can_interact(Rectangle other_rect) const
 {
   if (!enabled)
@@ -64,6 +69,8 @@ void Interactable::interact()
     return;
 
   interacted = true;
+
+  sound.play();
 
   for (const auto &action : actions)
   {

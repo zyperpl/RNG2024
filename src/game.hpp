@@ -9,6 +9,7 @@
 
 #include <raylib.h>
 
+#include "sound.hpp"
 #include "component.hpp"
 #include "level.hpp"
 #include "particles.hpp"
@@ -138,6 +139,11 @@ private:
   void load_selected_level();
   int defeated_frames{ 0 };
   int defeated_max_frames{ 60 };
+
+  GameSound char_sound;
+  GameSound select_sound;
+  GameSound up_sound;
+  GameSound up2_sound;
 
   friend void G_create_game();
   friend void G_reload_game();

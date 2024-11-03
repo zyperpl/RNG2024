@@ -53,6 +53,11 @@ void Enemy::init()
   auto &renderer = add_component(entity, SpriteRenderer("assets/tileset.png")).get();
   auto &sprite   = renderer.sprite_interpolated.sprite;
 
+  death_sound = GameSound("assets/sounds/boom2.wav");
+  death_sound.set_volume(2.0f);
+
+  hurt_sound = GameSound { "assets/sounds/hurt2.wav" };
+
   switch (type)
   {
     case Type::Slime:
@@ -67,6 +72,7 @@ void Enemy::init()
       sprite.source_offset.y = 192;
       sprite.set_frame_durations({ 200, 100 });
       sprite.set_frame_count(2);
+      death_sound.set_pitch(0.9f);
 
       break;
     case Type::Bat:
@@ -81,6 +87,7 @@ void Enemy::init()
       sprite.source_offset.y = 192 - 16;
       sprite.set_frame_durations({ 200, 200 });
       sprite.set_frame_count(2);
+      death_sound.set_pitch(1.1f);
       break;
     case Type::FallSlime:
       physics.gravity = 0.0f;
@@ -95,6 +102,7 @@ void Enemy::init()
       sprite.set_frame_durations({ 200, 100 });
       sprite.set_frame_count(2);
       sprite.scale.y = -1.0f;
+      death_sound.set_pitch(0.8f);
       break;
     case Type::Boss:
       physics.gravity = 0.0f;
@@ -111,6 +119,7 @@ void Enemy::init()
       sprite.set_frame_count(2);
 
       physics.mask = Mask::center_rect(40, 32);
+      death_sound.set_pitch(0.5f);
       break;
   }
 
@@ -409,6 +418,7 @@ void Enemy::postupdate()
 
   if (hurtable.process())
   {
+    hurt_sound.play();
     alerted         = true;
     light.intensity = 1.0f;
     Game::add_particles(physics.x, physics.y, hurt_particle, 2);
@@ -416,6 +426,8 @@ void Enemy::postupdate()
 
     if (hurtable.is_dead())
     {
+      death_sound.play();
+
       Level::Level::store(level_entity_id, "Killed", true);
 
       light.size      = 2.0f;

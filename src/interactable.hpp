@@ -3,6 +3,7 @@
 #include <string>
 #include <variant>
 
+#include "sound.hpp"
 #include "component.hpp"
 #include "game.hpp"
 #include "level_definitions.hpp"
@@ -44,6 +45,8 @@ struct Interactable
   {
   }
 
+  void init();
+
   [[nodiscard]] bool can_interact(Rectangle other_rect) const;
   void interact();
 
@@ -79,6 +82,7 @@ private:
   bool enabled{ true };
   bool interacted{ false };
   std::vector<Action> actions;
+  GameSound sound;
 };
 
 EXTERN_COMPONENT_TEMPLATE(Interactable);

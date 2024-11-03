@@ -30,6 +30,7 @@ void Player::init()
 
   auto &hurtable = add_component(entity, Hurtable()).get();
   hurtable.set_max_health(10);
+  hurtable.set_max_invincibility(60);
 
   {
     body                = add_component(entity, SpriteRenderer("assets/tileset.png"));
@@ -100,6 +101,21 @@ void Player::init()
                     .build();
 
   init_time = std::chrono::high_resolution_clock::now();
+
+  shoot_sound = GameSound { "assets/sounds/shoot2.wav" };
+  shoot_sound.set_volume(0.6f);
+
+  jump_sound = GameSound { "assets/sounds/jump1.wav" };
+  jump_sound.set_volume(0.6f);
+
+  land_sound = GameSound { "assets/sounds/jump2.wav" };
+  land_sound.set_volume(0.1f);
+
+  boom_sound = GameSound { "assets/sounds/boom.wav" };
+  boom_sound.set_volume(0.4f);
+  boom_sound.set_pitch(1.3f);
+
+  hurt_sound = GameSound { "assets/sounds/hurt1.wav" };
 }
 
 void Player::preupdate()
@@ -115,6 +131,8 @@ void Player::preupdate()
     if (standing_buffer <= 0)
     {
       landed = LANDED_MAX;
+
+      land_sound.play();
 
       jump_particle.v.x = physics.v.x * 0.2f + physics.v_previous.y * 0.1f;
       jump_particle.v.y = -0.1f;
@@ -202,6 +220,8 @@ void Player::update()
     jump_particle.v.x = -0.1f;
     Game::add_particles(physics.x + 4, physics.bottom(), jump_particle, 1);
 
+    jump_sound.play();
+
     jump_buffer     = 0;
     standing_buffer = 0;
   }
@@ -211,6 +231,9 @@ void Player::update()
 
   if (!can_interact && input.shoot && shoot_cooldown <= 0 && dir_y != 1)
   {
+    shoot_sound.set_pitch(1.0f + randf(-0.1f, 0.1f));
+    shoot_sound.play();
+
     shoot_cooldown = SHOOT_COOLDOWN_MAX;
 
     light.get().intensity = std::min(1.0f, light.get().intensity + 0.1f);
@@ -315,6 +338,7 @@ void Player::postupdate()
 
   if (hurtable.process())
   {
+    hurt_sound.play();
     physics.v.x /= 2.0f;
     physics.v.y = -2.0f;
   }

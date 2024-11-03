@@ -21,7 +21,18 @@ struct GameSound
 
   [[nodiscard]] bool is_playing() const noexcept;
 
+  void set_volume(float v)
+  {
+    volume = v;
+  }
+  void set_pitch(float p)
+  {
+    pitch = p;
+  }
+
 private:
   std::string path;
   mutable size_t last_index{ 0 };
+  float pitch{ 1.0f };
+  float volume{ 1.0f };
 };
