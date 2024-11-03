@@ -15,6 +15,15 @@ REGISTER_COMPONENT(Enemy);
 COMPONENT_TEMPLATE(Enemy);
 REGISTER_LEVEL_ENTITY(Enemy);
 
+Enemy::Enemy(int x, int y, Enemy::Type enemy_type)
+  : start_x{ x }
+  , start_y{ y }
+  , type{ enemy_type }
+{
+  static size_t counter = 0;
+  generate_id(counter, level_entity_id);
+}
+
 Enemy::Enemy(const Level::Entity &entity)
 {
   start_x = entity.position.x + entity.size.w / 2;
@@ -86,7 +95,22 @@ void Enemy::init()
       sprite.set_frame_durations({ 200, 100 });
       sprite.set_frame_count(2);
       sprite.scale.y = -1.0f;
+      break;
+    case Type::Boss:
+      physics.gravity = 0.0f;
 
+      hurtable.set_max_health(40);
+      hurtable.set_max_invincibility(30);
+
+      sprite.set_frame_width(40);
+      sprite.set_frame_height(32);
+
+      sprite.source_offset.x = 64;
+      sprite.source_offset.y = 176;
+
+      sprite.set_frame_count(2);
+
+      physics.mask = Mask::center_rect(40, 32);
       break;
   }
 
@@ -298,6 +322,56 @@ void Enemy::update()
         physics.v.y = -1.0f;
     }
   }
+  else if (type == Type::Boss)
+  {
+    target.x = start_x - randi(0, 60);
+    target.y = start_y;
+
+    if (shoot_timer <= 0)
+    {
+      if (chance(1))
+      {
+        auto enemies = get_components<Enemy>();
+        if (enemies.count < 20)
+        {
+          auto enemy = add_entity(Enemy(physics.x, physics.y, chance(30) ? Enemy::Type::Slime : Enemy::Type::Bat));
+
+          auto &manager = Manager::get();
+          manager.call_init();
+
+          auto &enemy_enemy   = get_component<Enemy>(enemy).get();
+          auto &enemy_physics = get_component<Physics>(enemy).get();
+          enemy_enemy.alerted = true;
+
+          if (player_physics.x < physics.x - 100)
+            enemy_physics.v.x = -3.0f;
+          else if (player_physics.x < physics.x - 30)
+            enemy_physics.v.x = -1.0f;
+          else
+            enemy_physics.v.y = 2.0f;
+
+          shoot_timer = shoot_max_timer;
+        }
+      }
+    }
+    else
+    {
+      shoot_timer -= 1;
+    }
+
+    if (Vector2Distance(target, Vector2{ static_cast<float>(physics.x), static_cast<float>(physics.y) }) > 2.0f)
+    {
+      if (target.x < physics.x)
+        physics.v.x = lerp(physics.v.x, -1.0f, 0.1f);
+      else if (target.x > physics.x)
+        physics.v.x = lerp(physics.v.x, 1.0f, 0.1f);
+
+      if (target.y < physics.y)
+        physics.v.y = lerp(physics.v.y, -1.0f, 0.1f);
+      else if (target.y > physics.y)
+        physics.v.y = lerp(physics.v.y, 1.0f, 0.1f);
+    }
+  }
 }
 
 void Enemy::postupdate()
@@ -346,7 +420,7 @@ void Enemy::postupdate()
 
       light.size      = 2.0f;
       light.intensity = 5.0f;
-      for (int i = 0; i < 10; i++)
+      for (int i = 0; i < (type == Type::Boss ? 100 : 10); i++)
       {
         const int part_x = physics.x + randi(-8, 8);
         const int part_y = physics.y + randi(-8, 8);
@@ -357,8 +431,26 @@ void Enemy::postupdate()
       physics.solid                        = false;
       physics.do_update                    = false;
 
-      Game::add_timer(entity, [entity = entity] { destroy_entity(entity); }, 30);
+      const int death_time = type == Type::Boss ? 60 : 30;
+
+      Game::add_timer(
+        entity,
+        [type = type, entity = entity]
+        {
+          destroy_entity(entity);
+          if (type == Type::Boss)
+          {
+            Game::skip_ticks(6);
+            Game::end_level();
+          }
+        },
+        death_time);
       Game::skip_ticks(1);
+
+      if (type == Type::Boss)
+      {
+        Game::skip_ticks(6);
+      }
     }
   }
 

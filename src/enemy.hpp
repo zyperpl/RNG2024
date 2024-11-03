@@ -13,10 +13,13 @@ struct Enemy
   {
     Slime,
     Bat,
-    FallSlime
+    FallSlime,
+    Boss
   };
 
   COMPONENT(Enemy);
+
+  Enemy(int x, int y, Enemy::Type);
   Enemy(const Level::Entity &entity);
 
   void init();
@@ -34,6 +37,8 @@ private:
   LevelEntityId level_entity_id;
   Vector2 target{ 0, 0 };
   Type type{ Type::Slime };
+  int shoot_timer{ 0 };
+  int shoot_max_timer{ 80 };
 };
 
 EXTERN_COMPONENT_TEMPLATE(Enemy);

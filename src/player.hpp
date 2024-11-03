@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 #include "manager.hpp"
 
 #include "particles.hpp"
@@ -18,6 +20,8 @@ struct Player
   void update();
   void postupdate();
   void collision(Entity other);
+
+  std::chrono::time_point<std::chrono::high_resolution_clock> init_time;
 
 private:
   int dir_x{ 1 };

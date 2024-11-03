@@ -91,7 +91,7 @@ void Level::create_entities(const LevelLoader &level_loader)
           physics.x     = level_entity.position.x;
           physics.y     = level_entity.position.y;
 
-          physics.do_update = true;
+          physics.do_update  = true;
           physics.collidable = true;
 
           reset_player_position = false;

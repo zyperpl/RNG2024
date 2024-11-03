@@ -471,6 +471,71 @@ extern "C"
       if (game.has_messages())
         game.draw_messages();
 
+      if (game.game_over)
+      {
+        Rectangle rect{ 0, 0, 160, 60 };
+        rect.x = 320 / 2 - rect.width / 2;
+        rect.y = 180 / 2 - rect.height / 2 + 20;
+        DrawRectangleRounded(rect, 0.1f, 8, PALETTE_BLACK);
+
+        const char *text     = "Game over. You win!";
+        const auto text_size = MeasureTextEx(game.font, text, game.font_size, game.font_spacing).x;
+        DrawTextEx(game.font,
+                   text,
+                   { roundf(static_cast<float>(320 / 2 - text_size / 2)), 180 / 2 },
+                   game.font_size,
+                   game.font_spacing,
+                   PALETTE_BLACK);
+        DrawTextEx(game.font,
+                   text,
+                   { roundf(static_cast<float>(320 / 2 - text_size / 2)), 180 / 2 + 1.0f },
+                   game.font_size,
+                   game.font_spacing,
+                   PALETTE_WHITE);
+        DrawTextEx(game.font,
+                   text,
+                   { roundf(static_cast<float>(320 / 2 - text_size / 2)), 180 / 2 + 2.0f },
+                   game.font_size,
+                   game.font_spacing,
+                   PALETTE[game.tick() % 8]);
+
+        const auto &players = get_components<Player>();
+        if (!players.empty())
+        {
+          const auto &player = players.front();
+          auto s = std::chrono::duration_cast<std::chrono::seconds>(game.end_time - player.init_time).count();
+
+          DrawTextEx(game.font,
+                     TextFormat("It took you %d s", s),
+                     { 320 / 2 - 54, 180 / 2 + 10 - 1 },
+                     game.font_size,
+                     game.font_spacing,
+                     PALETTE_BLACK);
+          DrawTextEx(game.font,
+                     TextFormat("It took you %d s", s),
+                     { 320 / 2 - 54, 180 / 2 + 10 },
+                     game.font_size,
+                     game.font_spacing,
+                     PALETTE_WHITE);
+
+          if (s < 300)
+          {
+            DrawTextEx(game.font,
+                       "You are a pro",
+                       { roundf(320 / 2 - 40 + randi(0, 3)), 180 / 2 + 30 - 1 },
+                       game.font_size,
+                       game.font_spacing,
+                       PALETTE_BLACK);
+            DrawTextEx(game.font,
+                       "You are a pro",
+                       { roundf(320 / 2 - 40 + randi(0, 3)), 180 / 2 + 30 },
+                       game.font_size,
+                       game.font_spacing,
+                       PALETTE[game.tick() % 8]);
+          }
+        }
+      }
+
 #if defined(DEBUG)
       const Color cursor_color = PALETTE_BLUE;
       INPUT.hide_cursor();
@@ -531,7 +596,7 @@ extern "C"
       const auto cur_level_y      = game->level.get_world_y();
       const auto cur_level_width  = game->level.get_width();
       const auto cur_level_height = game->level.get_height();
-      std::string cur_level_name   = game->level.get_name();
+      std::string cur_level_name  = game->level.get_name();
 
       bool level_changed = false;
 
@@ -956,7 +1021,7 @@ int64_t Game::level_height()
   return get().level.get_height();
 }
 
-std::string_view Game::level_name()
+std::string Game::level_name()
 {
   return get().level.get_name();
 }
@@ -1018,6 +1083,39 @@ void Game::end_level()
     queue_message("Transmission lost", PALETTE_WHITE);
     queue_message("New connected area available", PALETTE_WHITE);
   }
+  else if (g.level_name() == "Level_8")
+  {
+    const Color color{ PALETTE_YELLOW };
+    queue_message("#show_map");
+    queue_message("#complete 1");
+    queue_message("#discover 1");
+    queue_message("By reconnecting this area, you've secured critical support for the people below.", color);
+    queue_message("However, to ensure our long-term survival, we must reclaim greenhouses in the north.", color);
+    queue_message("#discover 2");
+    queue_message("Our lives depend on it. Good luck!", color);
+
+    queue_message("Transmission ended", PALETTE_WHITE);
+    queue_message("New area connected", PALETTE_WHITE);
+  }
+  else if (g.level_name() == "Level_16")
+  {
+    queue_message("#show_map");
+    queue_message("#complete 2");
+    queue_message("#discover 2");
+    queue_message("Detected anomalous power source.", PALETTE_WHITE);
+    queue_message("#discover 3");
+    queue_message("New connected area available", PALETTE_WHITE);
+  }
+  else if (g.level_name() == "Level_19")
+  {
+    const Color color{ PALETTE_YELLOW };
+    queue_message("#show_map");
+    queue_message("#complete 3");
+    queue_message("#discover 3");
+    queue_message("All areas reconnected.");
+    queue_message("You've done it! wow wow nice", color);
+    queue_message("#complete 4");
+  }
 }
 
 void Game::update_messages()
@@ -1035,6 +1133,16 @@ void Game::update_messages()
       if (parts.size() == 2)
       {
         const size_t node_id = std::stoi(parts[1]);
+
+        // hack, special case
+        if (node_id == 4)
+        {
+          game_over = true;
+          end_time  = std::chrono::high_resolution_clock::now();
+          messages.pop();
+          return;
+        }
+
         if (node_id < map_nodes.size())
         {
           map_nodes[node_id].completed = true;
@@ -1433,7 +1541,15 @@ void Game::draw_map()
       DrawTextEx(font, text, Vector2{ tx, ty }, font_size, font_spacing, PALETTE_WHITE);
 
       ty += line_spacing;
-      text      = n.occupied ? "You are here" : "Embark";
+      
+      text      = "Embark";
+
+      if (n.completed)
+        text = "Completed";
+
+      if (n.occupied)
+        text = "Occupied";
+
       text_size = MeasureTextEx(font, text, font_size, font_spacing);
       tx        = roundf(dialog_x + dialog_w / 2.0f - text_size.x / 2.0f);
 

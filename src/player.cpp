@@ -98,6 +98,8 @@ void Player::init()
                     .velocity({ -0.1f, -0.1f }, { 0.1f, 0.0f })
                     .sprite("assets/tileset.png:dust")
                     .build();
+
+  init_time = std::chrono::high_resolution_clock::now();
 }
 
 void Player::preupdate()

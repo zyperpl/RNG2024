@@ -1,7 +1,12 @@
 #pragma once
 
+#include <chrono>
 #include <cstddef>
 #include <functional>
+#include <queue>
+#include <string>
+#include <vector>
+
 #include <raylib.h>
 
 #include "component.hpp"
@@ -43,7 +48,7 @@ struct Game final
   [[nodiscard]] static ParticleBuilder particle_builder();
   [[nodiscard]] static int64_t level_width();
   [[nodiscard]] static int64_t level_height();
-  [[nodiscard]] static std::string_view level_name();
+  [[nodiscard]] static std::string level_name();
   [[nodiscard]] static size_t tick();
   [[nodiscard]] static size_t frame();
   static void skip_ticks(size_t count);
@@ -118,17 +123,21 @@ private:
     float draw_radius{ 100.0f };
   };
   std::vector<MapNode> map_nodes{ { "Area Zero", Vector2{ 164, 92 }, 30.0f, true },
-                                  { "Habitat", Vector2{ 186, 82 }, 10.0f } };
+                                  { "Habitat", Vector2{ 186, 82 }, 30.0f },
+                                  { "Greenhouses", Vector2{ 204, 56 }, 40.0f },
+                                  { "The Core", Vector2{ 250, 50 }, 10.0f } };
   void update_map();
   void draw_map();
   bool show_map{ false };
+  bool game_over{ false };
+  std::chrono::high_resolution_clock::time_point end_time;
   int map_x = 400;
   int map_y = 6;
   size_t selected_map_node{ 0 };
   Texture map_texture{ LoadTexture("assets/map.png") };
   void load_selected_level();
-  int defeated_frames { 0 };
-  int defeated_max_frames { 60 };
+  int defeated_frames{ 0 };
+  int defeated_max_frames{ 60 };
 
   friend void G_create_game();
   friend void G_reload_game();

@@ -55,7 +55,7 @@ struct Level
     field = entity_fields[entity_id][name];
   }
 
-  bool reset_player_position { true };
+  bool reset_player_position{ true };
 
 private:
   LevelLoader *level_loader{ nullptr };

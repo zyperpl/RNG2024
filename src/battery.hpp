@@ -22,7 +22,7 @@ private:
 
   int start_x{ 0 };
   int start_y{ 0 };
-  bool used { false };
+  bool used{ false };
   LevelEntityId level_entity_id;
 };
 
