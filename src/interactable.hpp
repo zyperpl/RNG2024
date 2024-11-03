@@ -68,6 +68,8 @@ struct Interactable
     actions.emplace_back(action...);
   }
 
+  [[nodiscard]] Vector2 get_position() const;
+
 private:
   bool enabled{ true };
   bool interacted{ false };

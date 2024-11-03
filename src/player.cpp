@@ -143,9 +143,14 @@ void Player::update()
     if (interactable.can_interact(interact_rect))
     {
       can_interact = true;
+      interact_point = interactable.get_position();
 
       if (input.shoot.pressed())
+      {
         interactable.interact();
+        can_interact = false;
+        return;
+      }
     }
   }
 

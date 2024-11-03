@@ -41,9 +41,9 @@ Terminal::Terminal(const Level::Entity &entity)
 void Terminal::init()
 {
   auto &physics = add_component(entity, Physics()).get();
-  physics.mask  = Mask::center_rect(w, h);
+  physics.mask  = Mask { 0, 0, w, h / 2 };
   physics.x     = start_x;
-  physics.y     = start_y;
+  physics.y     = start_y + h / 2;
   physics.solid = false;
 
   auto &renderer = add_component(entity, SpriteRenderer("assets/tileset.png")).get();

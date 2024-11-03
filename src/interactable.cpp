@@ -55,3 +55,15 @@ void Interactable::interact()
     execute_action(action);
   }
 }
+
+Vector2 Interactable::get_position() const
+{
+  auto physics_ref = get_component<Physics>(entity);
+  if (physics_ref)
+  {
+    const auto &physics = physics_ref.get();
+    return Vector2{ static_cast<float>(physics.x + physics.mask.width / 2), static_cast<float>(physics.y) };
+  }
+
+  return Vector2{ 0, 0 };
+}

@@ -34,19 +34,15 @@ void SpriteInterpolated::render()
   sprite.position.x = draw_x;
   sprite.position.y = draw_y;
   sprite.draw();
-#else
-  
-  const auto &draw_x = x;
-  const auto &draw_y = y;
-
-  sprite.position.x = draw_x;
-  sprite.position.y = draw_y;
-  sprite.draw();
-
-#endif
 
   previous_x = draw_x;
   previous_y = draw_y;
+#else
+  sprite.position.x = x;
+  sprite.position.y = y;
+  sprite.draw();
+
+#endif
 }
 
 void SpriteRenderer::render()
@@ -65,7 +61,12 @@ void TileRenderer::render()
     previous_y = y;
   }
 
+#if 0
   const auto &[draw_x, draw_y] = lerp(previous_x, previous_y, x, y, Game::frame_progress());
+#else
+  const float draw_x = x;
+  const float draw_y = y;
+#endif
 
   const auto rect = source();
   TileRenderer::render(sprite, rect, { draw_x, draw_y });

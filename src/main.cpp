@@ -243,8 +243,7 @@ auto main() -> int
   game_library.load();
 
   [[maybe_unused]] const auto monitor_refresh_rate = GetMonitorRefreshRate(0);
-  SetTargetFPS(std::max(monitor_refresh_rate, 120));
-  SetTargetFPS(60);
+  SetTargetFPS(std::max(monitor_refresh_rate, 60));
 
   engine             = std::make_unique<Engine>();
   loop.previous_time = get_time();

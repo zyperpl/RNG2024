@@ -200,7 +200,7 @@ extern "C"
       auto &player_y       = player_physics.y;
       camera.offset        = { game.render_texture.value.texture.width / 2.0f,
                                game.render_texture.value.texture.height / 2.0f };
-      camera.target.x      = player_x;
+      camera.target.x      = player_x - player_physics.mask.width / 2;
       camera.target.y      = player_y - player_physics.mask.height / 2;
       camera.target.x      = roundf(camera.target.x);
       camera.target.y      = roundf(camera.target.y);
@@ -285,6 +285,7 @@ extern "C"
       BeginMode2D(camera);
       {
         game.draw_deferred();
+        game.draw();
       }
       EndMode2D();
 
@@ -678,7 +679,7 @@ void Game::init()
       }
     }
   }
-  //ExportImage(font_image, "assets/KubastaFixed.png");
+  // ExportImage(font_image, "assets/KubastaFixed.png");
   font.texture = LoadTextureFromImage(font_image);
   UnloadImage(font_image);
 
@@ -688,6 +689,51 @@ void Game::init()
 #endif
 
   assert(IsFontValid(font) && "Font is not valid");
+}
+
+void Game::draw()
+{
+  auto players = get_components<Player>();
+
+  if (!players.empty())
+  {
+    const auto &player = players.front();
+    if (player.can_interact)
+    {
+      auto text      = "[C] INTERACT";
+      auto text_size = MeasureTextEx(font, text, font_size, font_spacing);
+      DrawTextEx(font,
+                 text,
+                 { player.interact_point.x - text_size.x / 2, player.interact_point.y - 20 + 1 },
+                 font_size,
+                 font_spacing,
+                 PALETTE_BLACK);
+      DrawTextEx(font,
+                 text,
+                 { player.interact_point.x - text_size.x / 2 - 1, player.interact_point.y - 20 },
+                 font_size,
+                 font_spacing,
+                 PALETTE_BLACK);
+      DrawTextEx(font,
+                 text,
+                 { player.interact_point.x - text_size.x / 2 + 1, player.interact_point.y - 20 },
+                 font_size,
+                 font_spacing,
+                 PALETTE_BLACK);
+      DrawTextEx(font,
+                 text,
+                 { player.interact_point.x - text_size.x / 2, player.interact_point.y - 20 - 1 },
+                 font_size,
+                 font_spacing,
+                 PALETTE_BLACK);
+      DrawTextEx(font,
+                 text,
+                 { player.interact_point.x - text_size.x / 2, player.interact_point.y - 20 },
+                 font_size,
+                 font_spacing,
+                 PALETTE_WHITE);
+    }
+  }
 }
 
 double Game::frame_progress()

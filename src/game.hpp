@@ -56,6 +56,7 @@ private:
   [[nodiscard]] static Game &get();
 
   void init();
+  void draw();
 
   struct Values
   {
