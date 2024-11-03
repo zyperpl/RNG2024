@@ -71,6 +71,14 @@ extern "C"
     auto &manager = Manager::get();
     manager.call_init();
     game->level.load("Area_Zero");
+
+#if defined(EMSCRIPTEN)
+    game->queue_message("Welcome! Click on the screen to focus the game. Use X and C keys to interact.");
+    game->queue_message("Thanks for playing and good luck!");
+#else
+    game->queue_message("Welcome!|Use arrow keys, X and C to control the tank. Good luck!");
+#endif
+
   }
 
   void G_reload_game()
