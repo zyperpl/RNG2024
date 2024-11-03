@@ -47,7 +47,7 @@ void main()
     float totalLight = 0.0;
     for (int i = 0; i < 32; i++)
     {
-        vec2 lp = vec2(lightPos[i].x - cameraPos.x, (resolution.y - lightPos[i].y) - cameraPos.y);
+        vec2 lp = vec2(lightPos[i].x - cameraPos.x, (resolution.y - lightPos[i].y) + cameraPos.y);
         vec2 lightDir = normalize(lp - gl_FragCoord.xy);
         float lightDist = length(lp - gl_FragCoord.xy) / 40.0;
         float intensity = clamp(pow(lightDist, -4.0) * lightSize[i], 0.0, 10.0) * lightIntensity[i];
@@ -57,9 +57,9 @@ void main()
     }
     float param = (t.z * 255.0) / 30.0;
     float param_1 = pow(t.x, 3.0) * totalLight;
-    vec2 param_2 = gl_FragCoord.xy + cameraPos;
-    vec3 _258 = GetDitheredPalette(param, param_1, param_2);
-    vec3 color = _258;
+    vec2 param_2 = gl_FragCoord.xy + vec2(cameraPos.x, -cameraPos.y);
+    vec3 _263 = GetDitheredPalette(param, param_1, param_2);
+    vec3 color = _263;
     fragColor = vec4(color, 1.0);
     fragColor.w = 1.0;
 }

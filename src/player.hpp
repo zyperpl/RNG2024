@@ -41,7 +41,7 @@ private:
   Particle jump_particle;
 
   bool can_interact{ false };
-  Vector2 interact_point { 0.0f, 0.0f };
+  Vector2 interact_point{ 0.0f, 0.0f };
 
   friend struct Game;
 };

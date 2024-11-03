@@ -142,13 +142,14 @@ void Player::update()
   {
     if (interactable.can_interact(interact_rect))
     {
-      can_interact = true;
+      can_interact   = true;
       interact_point = interactable.get_position();
 
       if (input.shoot.pressed())
       {
+        can_interact   = false;
+        shoot_cooldown = 10;
         interactable.interact();
-        can_interact = false;
         return;
       }
     }

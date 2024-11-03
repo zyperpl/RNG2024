@@ -73,7 +73,7 @@ void main()
 
   for (int i = 0; i < MAX_LIGHTS; i++)
   {
-    vec2 lp              = vec2(lightPos[i].x - cameraPos.x, resolution.y - lightPos[i].y - cameraPos.y);
+    vec2 lp              = vec2(lightPos[i].x - cameraPos.x, resolution.y - lightPos[i].y + cameraPos.y);
     vec2 lightDir        = normalize(lp - gl_FragCoord.xy);
     float lightDist      = length(lp - gl_FragCoord.xy) / 40.0;
 
@@ -84,7 +84,7 @@ void main()
     totalLight += diffuse * intensity;
   }
 
-  vec3 color = GetDitheredPalette(t.b * 255.0 / 30.0, pow(t.r, 3.0) * totalLight, gl_FragCoord.xy + cameraPos);
+  vec3 color = GetDitheredPalette(t.b * 255.0 / 30.0, pow(t.r, 3.0) * totalLight, gl_FragCoord.xy + vec2(cameraPos.x, -cameraPos.y));
 
   fragColor = vec4(color, 1.0);
 

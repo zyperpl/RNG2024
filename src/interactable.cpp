@@ -1,8 +1,10 @@
 #include "interactable.hpp"
 
 #include "game.hpp"
+#include "hurtable.hpp"
 #include "level.hpp"
 #include "physics.hpp"
+#include "player.hpp"
 #include "utils.hpp"
 
 REGISTER_COMPONENT(Interactable);
@@ -36,6 +38,19 @@ void execute_action(const Interactable::Action &action)
   else if (auto level_store = std::get_if<Interactable::ActionEndLevel>(&action))
   {
     Game::end_level();
+  }
+  else if (auto pickup = std::get_if<Interactable::HealthPickup>(&action))
+  {
+    auto players = get_components<Player>();
+    if (players.empty())
+      return;
+
+    auto &player      = players.front();
+    auto hurtable_ref = get_component<Hurtable>(player.entity);
+    if (!hurtable_ref)
+      return;
+
+    hurtable_ref.get().add_health(pickup->value);
   }
   else
   {

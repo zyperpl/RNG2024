@@ -27,6 +27,8 @@ Enemy::Enemy(const Level::Entity &entity)
     this->type = type_val.value();
   else
     fprintf(stderr, "Unknown enemy type '%s'\n", type_str.c_str());
+
+  read_field(entity.fields, "Identifier", level_entity_id);
 }
 
 void Enemy::init()
@@ -117,6 +119,17 @@ void Enemy::init()
                      .build();
 
   add_component(entity, Light());
+
+  Level::Field killed_field;
+  Level::Level::load(level_entity_id, "Killed", killed_field);
+
+  if (auto killed = std::get_if<bool>(&killed_field); killed && *killed)
+  {
+    renderer.sprite_interpolated.visible = false;
+    physics.collidable                   = false;
+    physics.do_update                    = false;
+    destroy_entity(entity);
+  }
 }
 
 void Enemy::update()
@@ -217,11 +230,16 @@ void Enemy::update()
         if (chance(10))
         {
           target.x = position.x + randf(-50, 50);
-          if (!colliding_up)
+          if (!colliding_up && physics.y > 50)
             target.y = position.y - randf(5, 30);
-          else if (!colliding_down)
+          else if (!colliding_down && physics.y < Game::level_height() - 50)
             target.y = position.y + randf(5, 10);
         }
+
+        if (physics.y < 50)
+          target.y = position.y + randf(5, 30);
+        else if (physics.y > Game::level_height() - 50)
+          target.y = position.y - randf(5, 10);
       }
     }
 
@@ -321,10 +339,11 @@ void Enemy::postupdate()
     light.intensity = 1.0f;
     Game::add_particles(physics.x, physics.y, hurt_particle, 2);
     Game::add_particles(hurtable.hit_point_x, hurtable.hit_point_y, hurt_particle2, 20);
-    Game::skip_ticks(1);
 
     if (hurtable.is_dead())
     {
+      Level::Level::store(level_entity_id, "Killed", true);
+
       light.size      = 2.0f;
       light.intensity = 5.0f;
       for (int i = 0; i < 10; i++)

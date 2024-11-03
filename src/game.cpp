@@ -519,38 +519,79 @@ extern "C"
     const auto &players = get_components<Player>();
     if (!players.empty() && game)
     {
-      const auto &player   = players.front();
-      auto &player_physics = get_component<Physics>(player.entity).get();
-      auto &player_x       = player_physics.x;
-      auto &player_y       = player_physics.y;
+      auto &player          = players.front();
+      auto &player_hurtable = get_component<Hurtable>(player.entity).get();
+      auto &player_physics  = get_component<Physics>(player.entity).get();
+      auto &player_x        = player_physics.x;
+      auto &player_y        = player_physics.y;
 
-      const auto level_width  = game->level.get_width();
-      const auto level_height = game->level.get_height();
-      bool level_changed      = false;
+      const auto level_width      = game->level.get_width();
+      const auto level_height     = game->level.get_height();
+      const auto cur_level_x      = game->level.get_world_x();
+      const auto cur_level_y      = game->level.get_world_y();
+      const auto cur_level_width  = game->level.get_width();
+      const auto cur_level_height = game->level.get_height();
+      std::string cur_level_name   = game->level.get_name();
 
-      if (player_x < 4)
+      bool level_changed = false;
+
+      const int x_offset = 4;
+      const int y_offset = 4;
+
+      if (player_hurtable.health <= 0)
+      {
+        if (game->defeated_frames <= 0)
+          game->defeated_frames = game->defeated_max_frames;
+      }
+      else if (player_x < x_offset)
       {
         game->level.load_neighbour(Level::Direction::West);
-        player_x      = game->level.get_width() - 5;
-        level_changed = true;
+        player_x = game->level.get_width() - x_offset;
+        player_y += cur_level_y - game->level.get_world_y();
+        level_changed = cur_level_name != game->level.get_name();
       }
-      else if (player_x >= level_width - 4)
+      else if (player_x >= cur_level_width + x_offset)
       {
         game->level.load_neighbour(Level::Direction::East);
-        player_x      = 5;
-        level_changed = true;
+        player_x = x_offset;
+        player_y += cur_level_y - game->level.get_world_y();
+        level_changed = cur_level_name != game->level.get_name();
       }
-      else if (player_y < 0)
+      else if (player_y < y_offset - 4)
       {
+        printf("Loading north\n");
+
         game->level.load_neighbour(Level::Direction::North);
-        player_y      = game->level.get_height() - 16;
-        level_changed = true;
+        player_y = game->level.get_height();
+        player_x += cur_level_x - game->level.get_world_x();
+        level_changed = cur_level_name != game->level.get_name();
       }
-      else if (player_y >= level_height)
+      else if (player_y >= cur_level_height + y_offset)
       {
+        printf("Loading south\n");
+
         game->level.load_neighbour(Level::Direction::South);
-        player_y      = 2;
-        level_changed = true;
+        player_y = y_offset + 4;
+        player_x += cur_level_x - game->level.get_world_x();
+        level_changed = cur_level_name != game->level.get_name();
+
+        printf("Previous level name: %s\n", cur_level_name.data());
+        printf("Current level name: %s\n", game->level.get_name().data());
+
+        if (!level_changed)
+        {
+          player_hurtable.hurt(1000, player_x, player_y);
+          if (game->defeated_frames <= 0)
+            game->defeated_frames = game->defeated_max_frames;
+        }
+      }
+      else if (player_physics.is_colliding_with_solid())
+      {
+#if !defined(DEBUG)
+        printf("Incorrect player position: %d, %d\n", player_x, player_y);
+        game->queue_message("Something strange happened", PALETTE_BLACK);
+        player_hurtable.hurt(1000, player_x, player_y);
+#endif
       }
 
       if (level_changed)
@@ -600,6 +641,39 @@ extern "C"
 
     if (!game->has_messages() && !game->show_map)
     {
+      if (game->defeated_frames > 0)
+      {
+        static Particle particle = game->particle_builder()
+                                     .sprite("assets/tileset.png:star")
+                                     .size(1.0f)
+                                     .life(10, 20)
+                                     .velocity({ -1.0f, -4.0f }, { 1.0f, 1.0f })
+                                     .build();
+
+        auto &player_physics = get_component<Physics>(players.front().entity).get();
+        game->add_particles(player_physics.x_previous, player_physics.y_previous - randi(0, 50), particle, 4);
+
+        // hack
+        for (auto &particle_system : get_components<ParticleSystem>())
+        {
+          particle_system.update();
+        }
+
+        game->defeated_frames -= 1;
+        printf("Defeated frames: %d\n", game->defeated_frames);
+        if (game->defeated_frames == 1)
+        {
+          game->defeated_frames = 0;
+          game->queue_message("You were destroyed");
+          game->load_selected_level();
+
+          auto &player_hurtable  = get_component<Hurtable>(players.front().entity).get();
+          player_hurtable.health = player_hurtable.max_health;
+        }
+
+        return;
+      }
+
       for (auto &component_id : manager.preupdate_components)
       {
         auto &container = manager.component_containers[component_id];
@@ -624,12 +698,24 @@ extern "C"
     else
     {
       game->update_messages();
+    }
 
 #if defined(DEBUG)
-      if (IsKeyPressed(KEY_B))
-        game->show_map = !game->show_map;
-#endif
+    if (IsKeyPressed(KEY_B))
+    {
+      game->show_map = !game->show_map;
     }
+    if (IsKeyPressed(KEY_N))
+    {
+      auto next_idx = game->selected_map_node + 1;
+      if (next_idx >= game->map_nodes.size())
+        next_idx = 0;
+
+      game->map_nodes[game->selected_map_node].discovered = true;
+      game->map_nodes[game->selected_map_node].completed  = true;
+      game->map_nodes[next_idx].discovered                = true;
+    }
+#endif
 
     game->update_map();
 
@@ -1145,6 +1231,19 @@ void Game::update_map()
     }
   }
 
+  size_t tries = map_nodes.size();
+  while (tries > 0 && !map_nodes[selected_map_node].discovered)
+  {
+    if (selected_map_node < map_nodes.size() - 1)
+      selected_map_node += 1;
+    else
+      selected_map_node = 0;
+
+    tries -= 1;
+  }
+  if (!map_nodes[selected_map_node].discovered)
+    selected_map_node = 0;
+
   if (!has_messages())
   {
     if (action_pressed)
@@ -1152,26 +1251,46 @@ void Game::update_map()
       action_pressed = false;
       printf("Selected node: %zu\n", selected_map_node);
 
-      for (auto &n : map_nodes)
-        n.occupied = false;
-
       if (selected_map_node < map_nodes.size())
       {
-        auto &n    = map_nodes[selected_map_node];
-        n.occupied = true;
-
-        std::string level_name = n.name;
-        std::replace(level_name.begin(), level_name.end(), ' ', '_');
-        level.load(level_name);
-
-        auto &manager = Manager::get();
-        game->particle_system.get().clear();
-        manager.call_init();
-
-        show_map = false;
+        auto &n = map_nodes[selected_map_node];
+        if (n.occupied || n.completed)
+          return;
+        load_selected_level();
       }
     }
   }
+}
+
+void Game::load_selected_level()
+{
+  level.reset_player_position = true;
+
+  auto &n = map_nodes[selected_map_node];
+
+  if (!n.discovered && n.name == map_nodes.front().name)
+    n.discovered = true;
+
+  if (!n.discovered)
+  {
+    selected_map_node = 0;
+    return;
+  }
+
+  for (auto &n : map_nodes)
+    n.occupied = false;
+
+  n.occupied = true;
+
+  std::string level_name = n.name;
+  std::replace(level_name.begin(), level_name.end(), ' ', '_');
+  level.load(level_name);
+
+  auto &manager = Manager::get();
+  game->particle_system.get().clear();
+  manager.call_init();
+
+  show_map = false;
 }
 
 void Game::draw_map()
@@ -1186,6 +1305,18 @@ void Game::draw_map()
 
     const auto &rd = n.draw_radius;
     const auto &rs = n.radius;
+
+    if (i < map_nodes.size() - 1 && n.discovered)
+    {
+      const auto &n2 = map_nodes[i + 1];
+      if (n2.discovered)
+      {
+        Vector2 n2p = n2.position;
+        n2p.x       = map_x - 100 + n2p.x;
+        DrawLineV(p, n2p, PALETTE_WHITE);
+        DrawLine(p.x, p.y - 1, n2p.x, n2p.y - 1, PALETTE_BLACK);
+      }
+    }
 
     if (n.discovered)
     {
@@ -1274,6 +1405,13 @@ void Game::draw_map()
 
     if (!has_messages())
     {
+      size_t last_discovered_node_idx = 0;
+      for (size_t i = 0; i < map_nodes.size(); ++i)
+      {
+        if (map_nodes[i].discovered)
+          last_discovered_node_idx = i;
+      }
+
       const int canvas_w = 320;
       const int canvas_h = 180;
       const int border   = 20;
@@ -1286,7 +1424,7 @@ void Game::draw_map()
       auto text      = TextFormat("%s %s %s",
                              selected_map_node == 0 ? "" : "<",
                              level_name.c_str(),
-                             selected_map_node == map_nodes.size() - 1 ? "" : ">");
+                             selected_map_node == last_discovered_node_idx ? "" : ">");
       auto text_size = MeasureTextEx(font, text, font_size, font_spacing);
       float tx       = roundf(dialog_x + dialog_w / 2.0f - text_size.x / 2.0f);
       float ty       = roundf(dialog_y + dialog_h / 2.0f - 16.0f);

@@ -98,7 +98,8 @@ void Bullet::collision(Entity other)
     auto &hurtable_ref = hurtable.get();
     hurtable_ref.hurt(1, physics.x, physics.y);
 
-    other_physics.v.y = -2.0f;
+    if (!other_physics.solid)
+      other_physics.v.y = -2.0f;
     Game::add_particles(physics.x, physics.y, hit_particle, 4);
     Game::add_particles(physics.x, physics.y, trail_particle, 4);
 

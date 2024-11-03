@@ -41,7 +41,7 @@ Terminal::Terminal(const Level::Entity &entity)
 void Terminal::init()
 {
   auto &physics = add_component(entity, Physics()).get();
-  physics.mask  = Mask { 0, 0, w, h / 2 };
+  physics.mask  = Mask{ 0, 0, w, h / 2 };
   physics.x     = start_x;
   physics.y     = start_y + h / 2;
   physics.solid = false;

@@ -68,6 +68,7 @@ set(GAME_SOURCES
   interactable.cpp
   terminal.cpp
   bird.cpp
+  battery.cpp
 )
 
 set(GAME_HEADERS
@@ -91,6 +92,7 @@ set(GAME_HEADERS
   interactable.hpp
   terminal.hpp
   bird.hpp
+  battery.hpp
 )
 
 if (EMSCRIPTEN)

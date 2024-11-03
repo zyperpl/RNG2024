@@ -31,6 +31,7 @@ private:
   int start_y{ 0 };
   int dir_x{ -1 };
   bool alerted{ false };
+  LevelEntityId level_entity_id;
   Vector2 target{ 0, 0 };
   Type type{ Type::Slime };
 };

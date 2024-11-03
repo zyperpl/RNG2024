@@ -82,12 +82,20 @@ void Level::create_entities(const LevelLoader &level_loader)
 
     if (level_entity.name == "PlayerPosition")
     {
-      if (auto players = get_components<Player>(); !players.empty())
+      if (reset_player_position)
       {
-        auto &player  = players.front();
-        auto &physics = get_component<Physics>(player.entity).get();
-        physics.x     = level_entity.position.x;
-        physics.y     = level_entity.position.y;
+        if (auto players = get_components<Player>(); !players.empty())
+        {
+          auto &player  = players.front();
+          auto &physics = get_component<Physics>(player.entity).get();
+          physics.x     = level_entity.position.x;
+          physics.y     = level_entity.position.y;
+
+          physics.do_update = true;
+          physics.collidable = true;
+
+          reset_player_position = false;
+        }
       }
     }
   }
@@ -151,7 +159,7 @@ int64_t Level::get_height() const
   return level_loader->height;
 }
 
-std::string_view Level::get_name() const
+std::string Level::get_name() const
 {
   assert(level_loader && "Level loader is not created");
 

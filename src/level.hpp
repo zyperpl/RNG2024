@@ -38,7 +38,7 @@ struct Level
   [[nodiscard]] int64_t get_world_y() const;
   [[nodiscard]] int64_t get_width() const;
   [[nodiscard]] int64_t get_height() const;
-  [[nodiscard]] std::string_view get_name() const;
+  [[nodiscard]] std::string get_name() const;
 
   static inline std::unordered_map<LevelEntityId, std::unordered_map<std::string, Field>> entity_fields;
   static void store(const LevelEntityId &entity_id, const std::string &name, const Field &field)
@@ -54,6 +54,8 @@ struct Level
 
     field = entity_fields[entity_id][name];
   }
+
+  bool reset_player_position { true };
 
 private:
   LevelLoader *level_loader{ nullptr };

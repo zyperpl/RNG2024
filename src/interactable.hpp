@@ -29,7 +29,12 @@ struct Interactable
   {
   };
 
-  using Action = std::variant<ActionMessage, ActionLevelStore, ActionEndLevel>;
+  struct HealthPickup
+  {
+    int value{ 1 };
+  };
+
+  using Action = std::variant<ActionMessage, ActionLevelStore, ActionEndLevel, HealthPickup>;
 
   COMPONENT(Interactable);
 
