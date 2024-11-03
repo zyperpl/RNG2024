@@ -58,6 +58,22 @@ struct Game final
   static void queue_message(std::string message, Color color = PALETTE_WHITE);
   static void end_level();
 
+  enum MusicTrack
+  {
+    None,
+    AreaZero,
+    Habitat,
+    Greenhouses,
+    Boss,
+    Win,
+    Hub
+  };
+
+  static inline void play_music(MusicTrack track)
+  {
+    get().track = track;
+  }
+
 private:
   [[nodiscard]] static Game &get();
 
@@ -92,8 +108,12 @@ private:
   NRL::ScreenEffect dither_fx{ "assets/shaders/dither_frag.glsl" };
   Level::Level level;
   ComponentReference<ParticleSystem> particle_system;
+
   Music music;
-  bool mute{ true };
+  std::unordered_map<MusicTrack, Music> music_tracks;
+  MusicTrack track{ AreaZero };
+
+  bool mute{ false };
   Font font;
   float font_size{ 18 };
   float font_spacing{ 1 };

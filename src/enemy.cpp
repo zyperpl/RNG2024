@@ -59,6 +59,7 @@ void Enemy::init()
   hurt_sound = GameSound { "assets/sounds/hurt2.wav" };
 
   boss_sound = GameSound { "assets/sounds/monster.wav" };
+  played_boss_sound = false;
 
   switch (type)
   {
@@ -335,11 +336,11 @@ void Enemy::update()
   }
   else if (type == Type::Boss)
   {
-    static bool played_boss_sound = false;
     if (!played_boss_sound)
     {
       boss_sound.play();
       played_boss_sound = true;
+      Game::play_music(Game::MusicTrack::Boss);
     }
 
     target.x = start_x - randi(0, 60);
@@ -353,7 +354,9 @@ void Enemy::update()
         if (enemies.count < 20)
         {
           boss_sound.play();
-          auto enemy = add_entity(Enemy(physics.x, physics.y, chance(30) ? Enemy::Type::Slime : Enemy::Type::Bat));
+          const int new_enemy_x = physics.x - randi(0, 60);
+          const int new_enemy_y = physics.y;
+          auto enemy = add_entity(Enemy(new_enemy_x, new_enemy_y, chance(30) ? Enemy::Type::Slime : Enemy::Type::Bat));
 
           auto &manager = Manager::get();
           manager.call_init();
@@ -367,7 +370,10 @@ void Enemy::update()
           else if (player_physics.x < physics.x - 30)
             enemy_physics.v.x = -1.0f;
           else
-            enemy_physics.v.y = 2.0f;
+          {
+            enemy_physics.v.x = randf(-4.0f, 1.0f);
+            enemy_physics.v.y = 3.0f;
+          }
 
           shoot_timer = shoot_max_timer;
         }

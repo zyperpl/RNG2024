@@ -39,7 +39,7 @@
 	"levelNamePattern": "Level_%idx",
 	"tutorialDesc": null,
 	"customCommands": [],
-	"flags": [],
+	"flags": ["IgnoreBackupSuggest"],
 	"defs": { "layers": [
 		{
 			"__type": "Entities",
@@ -2457,7 +2457,7 @@
 						},
 						{
 							"__identifier": "Enemy",
-							"__grid": [106,2],
+							"__grid": [106,4],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": { "tilesetUid": 5, "x": 0, "y": 176, "w": 16, "h": 16 },
@@ -2466,13 +2466,13 @@
 							"width": 16,
 							"height": 16,
 							"defUid": 23,
-							"px": [848,16],
+							"px": [848,32],
 							"fieldInstances": [{ "__identifier": "Type", "__type": "LocalEnum.EnemyTypeEnum", "__value": "Bat", "__tile": { "tilesetUid": 5, "x": 0, "y": 176, "w": 16, "h": 16 }, "defUid": 25, "realEditorValues": [{
 								"id": "V_String",
 								"params": ["Bat"]
 							}] }],
 							"__worldX": 848,
-							"__worldY": 16
+							"__worldY": 32
 						},
 						{
 							"__identifier": "Enemy",
@@ -2508,6 +2508,22 @@
 							],
 							"__worldX": 380,
 							"__worldY": 116
+						},
+						{
+							"__identifier": "Block",
+							"__grid": [100,0],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#00060B",
+							"iid": "c530ac20-73f0-11ef-843d-b972e4911a10",
+							"width": 88,
+							"height": 16,
+							"defUid": 1,
+							"px": [800,0],
+							"fieldInstances": [],
+							"__worldX": 800,
+							"__worldY": 0
 						}
 					]
 				},
@@ -3214,16 +3230,23 @@
 						{ "px": [312,0], "src": [0,8], "f": 0, "t": 32, "d": [59,39], "a": 1 },
 						{ "px": [568,0], "src": [0,8], "f": 0, "t": 32, "d": [59,71], "a": 1 },
 						{ "px": [696,0], "src": [0,8], "f": 0, "t": 32, "d": [59,87], "a": 1 },
+						{ "px": [880,0], "src": [0,8], "f": 0, "t": 32, "d": [59,110], "a": 1 },
 						{ "px": [312,8], "src": [0,8], "f": 0, "t": 32, "d": [59,150], "a": 1 },
 						{ "px": [568,8], "src": [0,8], "f": 0, "t": 32, "d": [59,182], "a": 1 },
 						{ "px": [696,8], "src": [0,8], "f": 0, "t": 32, "d": [59,198], "a": 1 },
+						{ "px": [880,8], "src": [0,8], "f": 0, "t": 32, "d": [59,221], "a": 1 },
 						{ "px": [568,16], "src": [0,8], "f": 0, "t": 32, "d": [59,293], "a": 1 },
 						{ "px": [696,16], "src": [0,8], "f": 0, "t": 32, "d": [59,309], "a": 1 },
+						{ "px": [880,16], "src": [0,8], "f": 0, "t": 32, "d": [59,332], "a": 1 },
 						{ "px": [344,24], "src": [0,8], "f": 0, "t": 32, "d": [59,376], "a": 1 },
 						{ "px": [568,24], "src": [0,8], "f": 0, "t": 32, "d": [59,404], "a": 1 },
 						{ "px": [696,24], "src": [0,8], "f": 0, "t": 32, "d": [59,420], "a": 1 },
+						{ "px": [880,24], "src": [0,8], "f": 0, "t": 32, "d": [59,443], "a": 1 },
 						{ "px": [568,32], "src": [0,8], "f": 0, "t": 32, "d": [59,515], "a": 1 },
 						{ "px": [696,32], "src": [0,8], "f": 0, "t": 32, "d": [59,531], "a": 1 },
+						{ "px": [880,32], "src": [0,8], "f": 0, "t": 32, "d": [59,554], "a": 1 },
+						{ "px": [880,40], "src": [0,8], "f": 0, "t": 32, "d": [59,665], "a": 1 },
+						{ "px": [880,48], "src": [0,8], "f": 0, "t": 32, "d": [59,776], "a": 1 },
 						{ "px": [320,128], "src": [0,8], "f": 0, "t": 32, "d": [59,1816], "a": 1 },
 						{ "px": [320,136], "src": [0,8], "f": 0, "t": 32, "d": [59,1927], "a": 1 },
 						{ "px": [848,136], "src": [0,8], "f": 0, "t": 32, "d": [59,1993], "a": 1 },
@@ -3328,6 +3351,7 @@
 						{ "px": [568,40], "src": [0,16], "f": 0, "t": 64, "d": [55,626], "a": 1 },
 						{ "px": [696,40], "src": [0,16], "f": 0, "t": 64, "d": [55,642], "a": 1 },
 						{ "px": [480,48], "src": [0,16], "f": 0, "t": 64, "d": [55,726], "a": 1 },
+						{ "px": [880,56], "src": [0,16], "f": 0, "t": 64, "d": [55,887], "a": 1 },
 						{ "px": [552,32], "src": [16,16], "f": 0, "t": 66, "d": [54,513], "a": 1 },
 						{ "px": [680,40], "src": [16,16], "f": 0, "t": 66, "d": [54,640], "a": 1 },
 						{ "px": [800,40], "src": [16,16], "f": 0, "t": 66, "d": [54,655], "a": 1 },
@@ -3570,29 +3594,29 @@
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 						0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,
-						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+						0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 						1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,
-						1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+						1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
 						1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,
-						1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+						1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,
 						1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-						1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+						1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,
 						1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,
-						1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+						1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,
 						1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,
-						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+						1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+						0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+						0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 						0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -6361,10 +6385,10 @@
 									"id": "V_String",
 									"params": ["EndLevel"]
 								}] },
-								{ "__identifier": "Text", "__type": "String", "__value": "Attempting to establish connection...\n...\nConnection with satellite confirmed.\nSynchronizing encryption keys... 89a37cd3151ef2a91643d7979417118 SUCCESS\nVerifying Payload 5.5 checksum...|...|SKIPPED\nInitializing transfer process...\nReceiving transmission...", "__tile": null, "defUid": 49, "realEditorValues": [{
+								{ "__identifier": "Text", "__type": "String", "__value": "Attempting to establish connection...\n...\nConnection with satellite confirmed.\nSynchronizing encryption keys... 89a37cd3151ef2a91643d7979417118 SUCCESS\nVerifying Payload 5.5 checksum...|...|SKIPPED\nInitializing transfer process...\n#stop_music\nReceiving transmission...", "__tile": null, "defUid": 49, "realEditorValues": [{
 									"id": "V_String",
 									"params": [
-										"Attempting to establish connection...\\n...\\nConnection with satellite confirmed.\\nSynchronizing encryption keys... 89a37cd3151ef2a91643d7979417118 SUCCESS\\nVerifying Payload 5.5 checksum...|...|SKIPPED\\nInitializing transfer process...\\nReceiving transmission..."
+										"Attempting to establish connection...\\n...\\nConnection with satellite confirmed.\\nSynchronizing encryption keys... 89a37cd3151ef2a91643d7979417118 SUCCESS\\nVerifying Payload 5.5 checksum...|...|SKIPPED\\nInitializing transfer process...\\n#stop_music\\nReceiving transmission..."
 									]
 								}] }
 							],
@@ -10074,7 +10098,7 @@
 								{ "__identifier": "Text", "__type": "String", "__value": "Hello again.\nOur habitat has been overrun by creatures.\nSurvivors are living in the underground shelters.\nPlease, reach the terminal at the tower's summit.\nRestore our connection. |Restore hope...", "__tile": null, "defUid": 49, "realEditorValues": [{
 									"id": "V_String",
 									"params": [
-										"Hello again.\\nOur habitat has been overrun by creatures.\\nSurvivors are living in the underground shelters.\\nPlease, reach the terminal at the tower's summit.\\nRestore our connection. |Restore hope..."
+										"Hello again.\nOur habitat has been overrun by creatures.\nSurvivors are living in the underground shelters.\nPlease, reach the terminal at the tower's summit.\nRestore our connection. |Restore hope..."
 									]
 								}] }
 							],
@@ -23809,7 +23833,7 @@
 								{ "__identifier": "Text", "__type": "String", "__value": "Establishing connection...\n...\nConnection with satellite: Confirmed\nUploading Payload 5.5... SUCCESS\nScanning for lifeforms...|...|1336 inhabitants detected\nDeploying emergency supplies...", "__tile": null, "defUid": 49, "realEditorValues": [{
 									"id": "V_String",
 									"params": [
-										"Establishing connection...\\n...\\nConnection with satellite: Confirmed\\nUploading Payload 5.5... SUCCESS\\nScanning for lifeforms...|...|1336 inhabitants detected\\nDeploying emergency supplies..."
+										"Establishing connection...\n...\nConnection with satellite: Confirmed\nUploading Payload 5.5... SUCCESS\nScanning for lifeforms...|...|1336 inhabitants detected\nDeploying emergency supplies..."
 									]
 								}] }
 							],
@@ -24771,7 +24795,7 @@
 								{ "__identifier": "Text", "__type": "String", "__value": "These greenhouses are vital to our survival. \nWe must secure them, but proceed with caution.\nNo one knows what creatures may lurk inside...", "__tile": null, "defUid": 49, "realEditorValues": [{
 									"id": "V_String",
 									"params": [
-										"These greenhouses are vital to our survival. \\nWe must secure them, but proceed with caution.\\nNo one knows what creatures may lurk inside..."
+										"These greenhouses are vital to our survival. \nWe must secure them, but proceed with caution.\nNo one knows what creatures may lurk inside..."
 									]
 								}] }
 							],
@@ -37838,7 +37862,7 @@
 								}] },
 								{ "__identifier": "Text", "__type": "String", "__value": "Uploading firmware 5.5... SUCCESS\nConnection established.\nScanning area...", "__tile": null, "defUid": 49, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["Uploading firmware 5.5... SUCCESS\\nConnection established.\\nScanning area..."]
+									"params": ["Uploading firmware 5.5... SUCCESS\nConnection established.\nScanning area..."]
 								}] }
 							],
 							"__worldX": 2636,

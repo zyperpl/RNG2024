@@ -42,6 +42,7 @@ private:
   GameSound death_sound;
   GameSound hurt_sound;
   GameSound boss_sound;
+  bool played_boss_sound { false };
 };
 
 EXTERN_COMPONENT_TEMPLATE(Enemy);

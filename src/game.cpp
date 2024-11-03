@@ -78,7 +78,6 @@ extern "C"
 #else
     game->queue_message("Welcome!|Use arrow keys, X and C to control the tank. Good luck!");
 #endif
-
   }
 
   void G_reload_game()
@@ -121,7 +120,7 @@ extern "C"
     assert(game && "Game is not created");
     auto &game = Game::get();
 
-    if (IsMusicStreamPlaying(game.music))
+    if (IsMusicValid(game.music) && IsMusicStreamPlaying(game.music))
       UpdateMusicStream(game.music);
 
     auto &manager = Manager::get();
@@ -141,10 +140,10 @@ extern "C"
       }
     };
     clear_lights();
-    size_t light_idx                  = 0;
-    auto &camera                      = game.camera;
-    light_pos[light_idx].x            = Input::get().game_mouse().x - camera.offset.x + camera.target.x;
-    light_pos[light_idx].y            = Input::get().game_mouse().y - camera.offset.y + camera.target.y;
+    size_t light_idx       = 0;
+    auto &camera           = game.camera;
+    light_pos[light_idx].x = Input::get().game_mouse().x - camera.offset.x + camera.target.x;
+    light_pos[light_idx].y = Input::get().game_mouse().y - camera.offset.y + camera.target.y;
 
 #if defined(DEBUG)
     static float mouse_light_strength = 0.0f;
@@ -707,10 +706,31 @@ extern "C"
     if (INPUT.mute.pressed())
       game->mute = !game->mute;
 
-    if (game->mute && IsMusicStreamPlaying(game->music))
+    if (!game->mute && game->track != Game::MusicTrack::None)
+    {
+      Music &music = game->music;
+      assert(game->music_tracks.contains(game->track));
+      const auto &track_music = game->music_tracks[game->track];
+
+      if (music.ctxData != track_music.ctxData)
+      {
+        StopMusicStream(music);
+        music = track_music;
+        PlayMusicStream(music);
+      }
+    }
+
+    if (game->track != Game::MusicTrack::None)
+    {
+      if (game->mute && IsMusicStreamPlaying(game->music))
+        StopMusicStream(game->music);
+      if (!game->mute && !IsMusicStreamPlaying(game->music))
+        PlayMusicStream(game->music);
+    }
+    else
+    {
       StopMusicStream(game->music);
-    if (!game->mute && !IsMusicStreamPlaying(game->music))
-      PlayMusicStream(game->music);
+    }
 
     manager.call_destroy();
     manager.call_init();
@@ -817,8 +837,25 @@ Game::Game() {}
 
 void Game::init()
 {
-  music = LoadMusicStream("assets/music/electric-chill-pop.mp3");
-  PlayMusicStream(music);
+  music_tracks[AreaZero] = LoadMusicStream("assets/music/place-stay.mp3");
+  SetMusicVolume(music_tracks[AreaZero], 0.5f);
+
+  music_tracks[Habitat] = LoadMusicStream("assets/music/jungle-groove.mp3");
+  SetMusicVolume(music_tracks[Habitat], 0.6f);
+
+  music_tracks[Greenhouses] = LoadMusicStream("assets/music/nature-grows-ambient.mp3");
+  SetMusicVolume(music_tracks[Greenhouses], 0.6f);
+
+  music_tracks[Boss] = LoadMusicStream("assets/music/dark-cold-beat.mp3");
+  SetMusicVolume(music_tracks[Boss], 0.6f);
+
+  music_tracks[Win] = LoadMusicStream("assets/music/80s-motivational-pop-rock-back.mp3");
+  SetMusicVolume(music_tracks[Win], 0.8f);
+
+  music_tracks[Hub] = LoadMusicStream("assets/music/inspiring-lofi-mountain-travel.mp3");
+  SetMusicVolume(music_tracks[Hub], 0.6f);
+
+  play_music(MusicTrack::AreaZero);
 
   generate_palette_texture();
 
@@ -861,7 +898,7 @@ void Game::init()
   char_sound   = GameSound("assets/sounds/blip.wav");
   select_sound = GameSound("assets/sounds/blip2.wav");
   up_sound     = GameSound("assets/sounds/up2.wav");
-  up2_sound     = GameSound("assets/sounds/up3.wav");
+  up2_sound    = GameSound("assets/sounds/up3.wav");
 }
 
 void Game::draw()
@@ -1161,6 +1198,7 @@ void Game::update_messages()
         {
           game_over = true;
           end_time  = std::chrono::high_resolution_clock::now();
+          play_music(MusicTrack::Win);
           messages.pop();
           return;
         }
@@ -1177,6 +1215,7 @@ void Game::update_messages()
     if (message == "#show_map")
     {
       show_map = true;
+      play_music(MusicTrack::Hub);
       messages.pop();
       return;
     }
@@ -1195,6 +1234,14 @@ void Game::update_messages()
           selected_map_node = node_id;
         }
       }
+      messages.pop();
+      return;
+    }
+
+    if (message == "#stop_music")
+    {
+      StopMusicStream(music);
+      play_music(MusicTrack::None);
       messages.pop();
       return;
     }
@@ -1431,6 +1478,15 @@ void Game::load_selected_level()
   auto &manager = Manager::get();
   game->particle_system.get().clear();
   manager.call_init();
+
+  if (level_name == "Habitat")
+    play_music(MusicTrack::Habitat);
+  if (level_name == "Greenhouses")
+    play_music(MusicTrack::Greenhouses);
+  if (level_name == "Area_Zero")
+    play_music(MusicTrack::AreaZero);
+  if (level_name == "The_Core")
+    play_music(MusicTrack::None);
 
   show_map = false;
 }
