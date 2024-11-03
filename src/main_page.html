@@ -133,8 +133,8 @@
 
     function check_canvas_size(event)
     {
-      const window_w = 256*4
-      const window_h = 144*4
+      const window_w = 320*3
+      const window_h = 180*3
       const window_scale = Math.min(window.innerWidth / window_w, window.innerHeight / window_h)
 
       Module.setCanvasSize(window_w * window_scale, window_h * window_scale)

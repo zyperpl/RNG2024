@@ -137,6 +137,8 @@ extern "C"
     auto &camera                      = game.camera;
     light_pos[light_idx].x            = Input::get().game_mouse().x - camera.offset.x + camera.target.x;
     light_pos[light_idx].y            = Input::get().game_mouse().y - camera.offset.y + camera.target.y;
+
+#if defined(DEBUG)
     static float mouse_light_strength = 0.0f;
     if (Input::get().mouse_wheel_down)
       mouse_light_strength -= 0.2f;
@@ -146,6 +148,7 @@ extern "C"
       mouse_light_strength = 0.0f;
     light_intensity[light_idx] = mouse_light_strength;
     light_idx += 1;
+#endif
 
     for (const auto &light : get_components<Light>())
     {

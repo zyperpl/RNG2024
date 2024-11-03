@@ -234,7 +234,7 @@ auto main() -> int
   // .has_sounds = true, .has_postupdate = true });
 #endif
 
-  InitWindow(GAME_WIDTH * 4, GAME_HEIGHT * 4, GAME_TITLE);
+  InitWindow(GAME_WIDTH * 3, GAME_HEIGHT * 3, GAME_TITLE);
 
   const constexpr int AUDIO_BUFFER_SIZE = (4096 * 12);
   SetAudioStreamBufferSizeDefault(AUDIO_BUFFER_SIZE);
