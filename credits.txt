@@ -9,6 +9,8 @@ https://creativecommons.org/licenses/by-nc-sa/3.0/deed.en
 
 Font based on the font by: Kai Kubasta https://www.dafont.com/kubasta.font CC0 License
 
+Music by SuloSounds https://sulosounds.itch.io/100-songs
+
 Tools and libraries:
 - raylib library by 2013-2024 Ramon Santamaria (@raysan5) zlib License https://www.raylib.com/
 - LDtk by Sébastien Bénard (@deepnightfr) MIT License https://ldtk.io/
