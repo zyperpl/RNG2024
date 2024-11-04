@@ -666,12 +666,13 @@ extern "C"
           }
         }
       }
-      else if (player_physics.is_colliding_with_solid())
+      else if (player_physics.is_colliding_with_solid() && player_hurtable.health > 0)
       {
 #if !defined(DEBUG)
         printf("Incorrect player position: %d, %d\n", player_x, player_y);
         game->queue_message("Something strange happened", PALETTE_BLACK);
         player_hurtable.hurt(1000, player_x, player_y);
+        game->load_selected_level();
 #endif
       }
 
