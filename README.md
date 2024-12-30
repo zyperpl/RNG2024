@@ -2,7 +2,7 @@
 
 ![CoTank animation](media/anim.gif)
 
-<video src='media/video.mp4' width=640></video>
+https://github.com/user-attachments/assets/3d621d9c-d75f-4a98-8a50-9b3797fb61d8
 
 ## [PLAY HERE](https://zyper.itch.io/cotank)
 
